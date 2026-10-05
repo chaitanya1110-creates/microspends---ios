@@ -1,0 +1,6 @@
+{
+  "name": "MIcroSpends Icarus",
+  "description": "Obsidian & Imperial Gold personal finance app with AI advisor, dynamic spend curves, recurring vault, and iOS IPA sideload compiler guide.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

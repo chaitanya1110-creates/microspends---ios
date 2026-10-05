@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-helvetica: "Helvetica Neue", Helvetica, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  }
+
+  body, html, * {
+    font-family: var(--font-helvetica);
+  }
+
+  body {
+    background-color: #020403;
+    color: #f4f4f5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .font-cinzel {
+    font-family: var(--font-helvetica) !important;
+    letter-spacing: 0.04em;
+  }
+}
+
+/* Custom scrollbars for clean mobile appearance */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(3, 10, 5, 0.4);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.4);
+}
+
+/* iOS Safe Area Padding Utilities */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 18px), 18px);
+}
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top, 12px), 12px);
+}
+
+/* Prevent unwanted iOS auto-zoom on form inputs when focused */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* iOS Touch optimizations */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Smooth iOS elastic scrolling inside container */
+.ios-momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
