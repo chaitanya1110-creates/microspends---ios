@@ -260,7 +260,7 @@ export const OracleTab: React.FC<OracleTabProps> = ({
   return (
     <div className="space-y-4">
       {/* 1. Top Hero: Golden Corona Health Gauge & Leakage Radar */}
-      <div className="rounded-2xl p-4 bg-gradient-to-b from-[#08170c]/90 to-[#020503]/95 border border-amber-500/30 shadow-2xl backdrop-blur-xl">
+      <div className="rounded-2xl p-4 liquid-glass-card rgb-border-subtle shadow-2xl">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
@@ -302,7 +302,7 @@ export const OracleTab: React.FC<OracleTabProps> = ({
         </div>
 
         {/* Oracle Summary Headline */}
-        <div className="mt-4 pt-3 border-t border-amber-500/15">
+        <div className="mt-4 pt-3 border-t border-white/[0.08]">
           <h4 className="font-cinzel text-xs font-bold text-amber-100 mb-1">
             {insight.headline}
           </h4>
@@ -313,7 +313,7 @@ export const OracleTab: React.FC<OracleTabProps> = ({
       </div>
 
       {/* 2. Interactive Wealth Advisor Query Bar */}
-      <div className="rounded-2xl p-4 bg-[#030a05]/95 border border-zinc-800 shadow-xl backdrop-blur-xl">
+      <div className="rounded-2xl p-4 liquid-glass-card shadow-xl border border-white/[0.08]">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5 text-xs text-amber-300 font-cinzel font-bold">
             <Compass className="w-3.5 h-3.5 text-amber-400" />
