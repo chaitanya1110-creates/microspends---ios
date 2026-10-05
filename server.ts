@@ -52,10 +52,11 @@ async function startServer() {
       }
 
       const ai = getAiClient();
+      const currentDateContext = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
       const response = await ai.models.generateContent({
         model: "gemini-3.8-flash",
         contents: `Parse this natural language financial entry into a structured transaction: "${text}".
-Current date context: March 2026.
+Current date context: ${currentDateContext}.
 Classify category strictly into one of: 'Food & Dining', 'Groceries', 'Transportation', 'Shopping & Treasury', 'Health & Wellness', 'Bills & Utilities', 'Entertainment', 'Income & Salary', 'Other'.
 Classify type as 'debit' (outflow/expense) or 'credit' (inflow/income).`,
         config: {
@@ -308,8 +309,10 @@ Extract exact numeric amount, merchant name, and category ('Food & Dining', 'Gro
       }
 
       const ai = getAiClient();
+      const currentDateStr = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric", day: "numeric" });
       const prompt = `You are the Delphic Oracle of MIcroSpends Icarus, an elite, Hellenic-inspired personal wealth auditor and financial strategist.
 User Query: "${userQuery || "Perform a full financial health audit and spending leakage evaluation."}"
+Current Date Context: ${currentDateStr}
 
 User Financial Context:
 ${JSON.stringify(financialContext, null, 2)}

@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with personal finance preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique Firebase user ID" },
+        "email": { "type": "string", "format": "email", "description": "User's Google account email" },
+        "displayName": { "type": "string", "description": "User's display name" },
+        "photoURL": { "type": "string", "description": "User avatar URL" },
+        "currency": { "type": "string", "description": "Preferred monetary currency symbol" },
+        "updatedAt": { "type": "number", "description": "Epoch timestamp of last update" }
+      },
+      "required": ["uid", "updatedAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial debit or credit transaction entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Transaction identifier" },
+        "userId": { "type": "string", "description": "Owner user UID" },
+        "title": { "type": "string", "description": "Short title or label" },
+        "amount": { "type": "number", "description": "Monetary amount" },
+        "type": { "type": "string", "enum": ["debit", "credit"], "description": "Inflow or outflow" },
+        "category": { "type": "string", "description": "Spending or income category" },
+        "merchant": { "type": "string", "description": "Merchant or payee" },
+        "date": { "type": "string", "description": "Date formatted YYYY-MM-DD" },
+        "paymentMethod": { "type": "string", "description": "Method of payment e.g. Apple Pay, UPI" },
+        "note": { "type": "string", "description": "Optional memo or notes" },
+        "createdAt": { "type": "number", "description": "Epoch timestamp in ms" }
+      },
+      "required": ["id", "userId", "title", "amount", "type", "category", "date", "createdAt"]
+    },
+    "Subscription": {
+      "title": "Subscription",
+      "description": "Recurring subscription or automated service cost",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Subscription identifier" },
+        "userId": { "type": "string", "description": "Owner user UID" },
+        "name": { "type": "string", "description": "Subscription service name" },
+        "amount": { "type": "number", "description": "Recurring cost amount" },
+        "billingCycle": { "type": "string", "description": "Billing cycle e.g. monthly, annual" },
+        "category": { "type": "string", "description": "Category name" },
+        "nextDueDate": { "type": "string", "description": "Renewal day or date YYYY-MM-DD" },
+        "active": { "type": "boolean", "description": "Whether subscription is active" },
+        "icon": { "type": "string", "description": "Icon identifier" }
+      },
+      "required": ["id", "userId", "name", "amount", "billingCycle", "active"]
+    },
+    "AdvisorInsight": {
+      "title": "AdvisorInsight",
+      "description": "Cached Delphic Oracle AI financial intelligence analysis",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Insight ID" },
+        "userId": { "type": "string", "description": "Owner user UID" },
+        "score": { "type": "number", "description": "Financial score (0-100)" },
+        "grade": { "type": "string", "description": "Grade A+, A, B, C, D" },
+        "headline": { "type": "string", "description": "Headline analysis" },
+        "summary": { "type": "string", "description": "Full analysis narrative" },
+        "createdAt": { "type": "number", "description": "Epoch timestamp" }
+      },
+      "required": ["id", "userId", "score", "grade", "headline", "summary", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile and financial preferences"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "User personal financial transactions"
+    },
+    "/users/{userId}/subscriptions/{subscriptionId}": {
+      "schema": "Subscription",
+      "description": "User recurring subscriptions"
+    },
+    "/users/{userId}/insights/{insightId}": {
+      "schema": "AdvisorInsight",
+      "description": "User Delphic Oracle AI financial recommendations"
+    }
+  }
+}

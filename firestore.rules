@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Core Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 3. User Validation Blueprint
+    function isValidUser(data, userId) {
+      return data.keys().hasAll(['uid', 'updatedAt']) &&
+             data.keys().hasOnly(['uid', 'email', 'displayName', 'photoURL', 'currency', 'updatedAt']) &&
+             data.uid == userId &&
+             data.updatedAt is number &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 256)) &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 128)) &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 2048)) &&
+             (!('currency' in data) || (data.currency is string && data.currency.size() <= 8));
+    }
+
+    // 4. Transaction Validation Blueprint
+    function isValidTransaction(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'title', 'amount', 'type', 'category', 'date', 'createdAt']) &&
+             data.keys().hasOnly(['id', 'userId', 'title', 'amount', 'type', 'category', 'merchant', 'date', 'paymentMethod', 'note', 'createdAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.userId == userId &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.amount is number && data.amount >= 0 &&
+             (data.type == 'debit' || data.type == 'credit') &&
+             data.category is string && data.category.size() <= 100 &&
+             data.date is string && data.date.size() <= 32 &&
+             data.createdAt is number &&
+             (!('merchant' in data) || (data.merchant is string && data.merchant.size() <= 150)) &&
+             (!('paymentMethod' in data) || (data.paymentMethod is string && data.paymentMethod.size() <= 100)) &&
+             (!('note' in data) || (data.note is string && data.note.size() <= 1000));
+    }
+
+    // 5. Subscription Validation Blueprint
+    function isValidSubscription(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'name', 'amount', 'billingCycle', 'active']) &&
+             data.keys().hasOnly(['id', 'userId', 'name', 'amount', 'billingCycle', 'category', 'nextDueDate', 'active', 'icon']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.userId == userId &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 150 &&
+             data.amount is number && data.amount >= 0 &&
+             data.billingCycle is string && data.billingCycle.size() <= 50 &&
+             data.active is bool &&
+             (!('category' in data) || (data.category is string && data.category.size() <= 100)) &&
+             (!('nextDueDate' in data) || (data.nextDueDate is string && data.nextDueDate.size() <= 50)) &&
+             (!('icon' in data) || (data.icon is string && data.icon.size() <= 50));
+    }
+
+    // 6. Advisor Insight Validation Blueprint
+    function isValidInsight(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'score', 'grade', 'headline', 'summary', 'createdAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.userId == userId &&
+             data.score is number &&
+             data.grade is string && data.grade.size() <= 10 &&
+             data.headline is string && data.headline.size() <= 300 &&
+             data.summary is string && data.summary.size() <= 4000 &&
+             data.createdAt is number;
+    }
+
+    // Rules for User document & Subcollections
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // Users can never be queried as a whole list
+      allow create: if isOwner(userId) && isValidUser(request.resource.data, userId);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data, userId);
+      allow delete: if isOwner(userId);
+
+      match /transactions/{transactionId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(transactionId) && isValidTransaction(request.resource.data, userId);
+        allow update: if isOwner(userId) && isValidId(transactionId) && isValidTransaction(request.resource.data, userId);
+        allow delete: if isOwner(userId);
+      }
+
+      match /subscriptions/{subscriptionId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(subscriptionId) && isValidSubscription(request.resource.data, userId);
+        allow update: if isOwner(userId) && isValidId(subscriptionId) && isValidSubscription(request.resource.data, userId);
+        allow delete: if isOwner(userId);
+      }
+
+      match /insights/{insightId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(insightId) && isValidInsight(request.resource.data, userId);
+        allow update: if isOwner(userId) && isValidId(insightId) && isValidInsight(request.resource.data, userId);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

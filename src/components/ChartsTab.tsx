@@ -5,9 +5,14 @@ import { Activity, Flame, TrendingUp } from 'lucide-react';
 interface ChartsTabProps {
   transactions: Transaction[];
   currency: string;
+  currentMonth?: string;
 }
 
-export const ChartsTab: React.FC<ChartsTabProps> = ({ transactions, currency }) => {
+export const ChartsTab: React.FC<ChartsTabProps> = ({ 
+  transactions, 
+  currency, 
+  currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) 
+}) => {
   const ringsCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const splineCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -120,15 +125,32 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({ transactions, currency }) 
     const height = rect.height;
     ctx.clearRect(0, 0, width, height);
 
-    // Aggregate spend by day for March (days 1 to 16)
+    // Parse month & year dynamically
+    const parts = currentMonth.split(' ');
+    const year = parseInt(parts[1], 10) || new Date().getFullYear();
+    const monthName = parts[0] || 'January';
+    const monthDate = new Date(`${monthName} 1, ${year}`);
+    const monthIndex = isNaN(monthDate.getTime()) ? new Date().getMonth() : monthDate.getMonth();
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+    const isCurrentCalendarMonth = 
+      new Date().getMonth() === monthIndex && new Date().getFullYear() === year;
+    const maxDayToPlot = isCurrentCalendarMonth ? Math.max(1, new Date().getDate()) : daysInMonth;
+
+    // Aggregate spend by day for current month
     const dailyMap: Record<number, number> = {};
-    for (let day = 1; day <= 16; day++) dailyMap[day] = 0;
+    for (let day = 1; day <= maxDayToPlot; day++) dailyMap[day] = 0;
 
     debitTransactions.forEach((t) => {
-      const day = parseInt(t.date.split('-')[2], 10);
-      if (day >= 1 && day <= 16) {
-        dailyMap[day] = (dailyMap[day] || 0) + t.amount;
-      }
+      try {
+        const [y, m, d] = t.date.split('-');
+        if (parseInt(y, 10) === year && parseInt(m, 10) === monthIndex + 1) {
+          const day = parseInt(d, 10);
+          if (day >= 1 && day <= maxDayToPlot) {
+            dailyMap[day] = (dailyMap[day] || 0) + t.amount;
+          }
+        }
+      } catch {}
     });
 
     const days = Object.keys(dailyMap).map(Number).sort((a, b) => a - b);
@@ -136,7 +158,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({ transactions, currency }) 
     const maxAmount = Math.max(...amounts, 1000);
 
     const points: { x: number; y: number; day: number; amount: number }[] = days.map((d, idx) => {
-      const x = (idx / (days.length - 1)) * (width - 40) + 20;
+      const x = days.length > 1 ? (idx / (days.length - 1)) * (width - 40) + 20 : width / 2;
       const y = height - 25 - (amounts[idx] / maxAmount) * (height - 50);
       return { x, y, day: d, amount: amounts[idx] };
     });
@@ -263,7 +285,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({ transactions, currency }) 
               Daily Spending Trend
             </h3>
           </div>
-          <span className="text-[11px] text-zinc-400">March 1 – 16</span>
+          <span className="text-[11px] text-zinc-400 font-mono">{currentMonth}</span>
         </div>
 
         <p className="text-xs text-zinc-400 mb-2">

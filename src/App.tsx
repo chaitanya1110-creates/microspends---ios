@@ -16,8 +16,22 @@ import {
   loadOracleInsight, 
   saveOracleInsight, 
   loadCurrency, 
-  saveCurrency 
+  saveCurrency,
+  formatMonthYear,
+  getAdjacentMonth,
+  isDateInMonth
 } from './utils/storage';
+import { 
+  auth, 
+  fetchUserTransactions, 
+  saveUserTransactionToFirestore, 
+  deleteUserTransactionFromFirestore,
+  fetchUserSubscriptions, 
+  saveUserSubscriptionToFirestore, 
+  deleteUserSubscriptionFromFirestore,
+  syncUserDoc
+} from './firebase';
+import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { IosStatusBar } from './components/IosStatusBar';
 import { HeroBalanceCard } from './components/HeroBalanceCard';
 import { AccountCardsRow } from './components/AccountCardsRow';
@@ -30,6 +44,7 @@ import { IpaCompilationModal } from './components/IpaCompilationModal';
 import { GamificationModal } from './components/GamificationModal';
 import { DataMigrationModal } from './components/DataMigrationModal';
 import { IosShortcutsModal } from './components/IosShortcutsModal';
+import { AccountModal } from './components/AccountModal';
 import { GoldenParticlesBackground } from './components/GoldenParticlesBackground';
 import { soundFx } from './utils/audio';
 import { triggerHaptic } from './utils/haptics';
@@ -44,9 +59,14 @@ export default function App() {
   const [currency, setCurrency] = useState<string>(loadCurrency);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
-  // Active view tab & month
+  // Active view tab & real dynamic month
   const [activeTab, setActiveTab] = useState<TabType>('entries');
-  const [currentMonth, setCurrentMonth] = useState<string>('March 2026');
+  const [currentMonth, setCurrentMonth] = useState<string>(() => formatMonthYear(new Date()));
+
+  // Google Auth & Cloud Sync State
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
+  const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
 
   // Automatic Message Sync State
   const [isAutoSyncActive, setIsAutoSyncActive] = useState<boolean>(true);
@@ -64,6 +84,44 @@ export default function App() {
   const [isGamificationModalOpen, setIsGamificationModalOpen] = useState<boolean>(false);
   const [isDataBackupModalOpen, setIsDataBackupModalOpen] = useState<boolean>(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState<boolean>(false);
+
+  // Synchronize Firebase Auth state and cloud data
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      if (user) {
+        await syncUserDoc(user, currency);
+        try {
+          setIsCloudSyncing(true);
+          const cloudTxs = await fetchUserTransactions(user.uid);
+          const cloudSubs = await fetchUserSubscriptions(user.uid);
+
+          if (cloudTxs.length > 0) {
+            setTransactions(cloudTxs);
+          } else if (transactions.length > 0) {
+            // First time sync: push local data to Firestore
+            for (const tx of transactions) {
+              await saveUserTransactionToFirestore(user.uid, tx);
+            }
+          }
+
+          if (cloudSubs.length > 0) {
+            setSubscriptions(cloudSubs);
+          } else if (subscriptions.length > 0) {
+            for (const sub of subscriptions) {
+              await saveUserSubscriptionToFirestore(user.uid, sub);
+            }
+          }
+        } catch (err) {
+          console.error('Initial Firestore cloud sync error:', err);
+        } finally {
+          setIsCloudSyncing(false);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Synchronize state changes to offline storage
   useEffect(() => {
@@ -86,19 +144,55 @@ export default function App() {
     saveCurrency(currency);
   }, [currency]);
 
-  // Aggregate Metrics
-  const totalDebited = transactions
+  // Push all local data to Cloud Firestore
+  const handlePushToCloud = async () => {
+    if (!currentUser) return;
+    setIsCloudSyncing(true);
+    try {
+      await syncUserDoc(currentUser, currency);
+      for (const tx of transactions) {
+        await saveUserTransactionToFirestore(currentUser.uid, tx);
+      }
+      for (const sub of subscriptions) {
+        await saveUserSubscriptionToFirestore(currentUser.uid, sub);
+      }
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
+  // Pull / restore all data from Cloud Firestore
+  const handlePullFromCloud = async () => {
+    if (!currentUser) return;
+    setIsCloudSyncing(true);
+    try {
+      const cloudTxs = await fetchUserTransactions(currentUser.uid);
+      const cloudSubs = await fetchUserSubscriptions(currentUser.uid);
+      if (cloudTxs.length > 0) setTransactions(cloudTxs);
+      if (cloudSubs.length > 0) setSubscriptions(cloudSubs);
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
+  // Month-filtered transactions & metrics
+  const currentMonthTransactions = transactions.filter((t) => isDateInMonth(t.date, currentMonth));
+  
+  // Show month-specific metrics if entries exist in this month, else total
+  const activeDebitPool = currentMonthTransactions.length > 0 ? currentMonthTransactions : transactions;
+  
+  const totalDebited = activeDebitPool
     .filter((t) => t.type === 'debit')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalCredited = transactions
+  const totalCredited = activeDebitPool
     .filter((t) => t.type === 'credit')
     .reduce((sum, t) => sum + t.amount, 0);
 
   const netBalance = totalCredited - totalDebited;
 
-  // Upcoming renewals count in next 7 days
-  const today = new Date('2026-03-16');
+  // Upcoming renewals count in next 7 days based on real-time current date
+  const today = new Date();
   const upcomingRenewalsCount = subscriptions.filter((s) => {
     if (!s.active) return false;
     const due = new Date(s.nextDueDate);
@@ -115,6 +209,11 @@ export default function App() {
     };
 
     setTransactions((prev) => [fullTx, ...prev]);
+
+    // Cloud Firestore Sync
+    if (currentUser) {
+      saveUserTransactionToFirestore(currentUser.uid, fullTx).catch(console.error);
+    }
 
     // Award XP and maintain streaks
     setGamification((prev) => {
@@ -138,6 +237,71 @@ export default function App() {
     });
   };
 
+  // Action: Delete transaction
+  const handleDeleteTransaction = (id: string) => {
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    if (currentUser) {
+      deleteUserTransactionFromFirestore(currentUser.uid, id).catch(console.error);
+    }
+  };
+
+  // Action: Toggle subscription status
+  const handleToggleSubscription = (id: string) => {
+    const updated = subscriptions.map((s) => (s.id === id ? { ...s, active: !s.active } : s));
+    setSubscriptions(updated);
+    if (currentUser) {
+      const target = updated.find((s) => s.id === id);
+      if (target) saveUserSubscriptionToFirestore(currentUser.uid, target).catch(console.error);
+    }
+  };
+
+  // Action: Add subscription
+  const handleAddSubscription = (newSub: Omit<Subscription, 'id'>) => {
+    const subWithId: Subscription = {
+      ...newSub,
+      id: `sub-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    };
+    setSubscriptions((prev) => [subWithId, ...prev]);
+    if (currentUser) {
+      saveUserSubscriptionToFirestore(currentUser.uid, subWithId).catch(console.error);
+    }
+  };
+
+  // Action: Delete subscription
+  const handleDeleteSubscription = (id: string) => {
+    setSubscriptions((prev) => prev.filter((s) => s.id !== id));
+    if (currentUser) {
+      deleteUserSubscriptionFromFirestore(currentUser.uid, id).catch(console.error);
+    }
+  };
+
+  // Action: Log recurring renewal
+  const handleLogRenewalAsExpense = (sub: Subscription) => {
+    handleAddTransaction({
+      title: `${sub.name} (Auto-Renewal)`,
+      amount: sub.amount,
+      type: 'debit',
+      category: sub.category,
+      merchant: sub.name,
+      paymentMethod: 'Auto Debit',
+      note: `Vault renewal logged for ${sub.billingCycle} cycle`,
+      date: new Date().toISOString().split('T')[0],
+    });
+  };
+
+  // Action: Currency toggle
+  const handleToggleCurrency = () => {
+    setCurrency((prev) => (prev === '₹' ? '$' : '₹'));
+  };
+
+  // Month navigation (real dynamic shifts)
+  const handlePrevMonth = () => {
+    setCurrentMonth((prev) => getAdjacentMonth(prev, -1));
+  };
+  const handleNextMonth = () => {
+    setCurrentMonth((prev) => getAdjacentMonth(prev, 1));
+  };
+
   // Helper: Show Auto-Captured Toast Notification
   const showAutoSmsToast = (
     tx: { title: string; amount: number; type: 'debit' | 'credit'; merchant: string },
@@ -155,229 +319,126 @@ export default function App() {
     }, 4500);
   };
 
-  // 1. Background Poller: Automatically ingest incoming messages from iOS Shortcuts webhook
+  // Background Poller: Automatically ingest incoming messages from iOS Shortcuts webhook
   useEffect(() => {
     if (!isAutoSyncActive) return;
 
-    const interval = setInterval(async () => {
+    const pollInterval = setInterval(async () => {
       try {
         const res = await fetch('/api/sms/pending');
         if (!res.ok) return;
         const data = await res.json();
-        if (data.pending && data.pending.length > 0) {
+        const pending = data?.pending || [];
+
+        if (pending.length > 0) {
           const idsToMark: string[] = [];
-          for (const item of data.pending) {
+
+          for (const item of pending) {
+            idsToMark.push(item.id);
             if (item.transaction) {
               handleAddTransaction(item.transaction);
+              showAutoSmsToast(item.transaction, item.sender || 'Live Bank Alert');
+
               if (soundEnabled) {
-                if (item.transaction.type === 'credit') soundFx.goldChime();
-                else soundFx.debitChirp();
+                if (item.transaction.type === 'credit') {
+                  soundFx.goldChime();
+                } else {
+                  soundFx.debitChirp();
+                }
               }
               triggerHaptic('success');
-              showAutoSmsToast(item.transaction, item.sender || 'iOS Bank SMS');
             }
-            idsToMark.push(item.id);
           }
 
-          // Mark processed
           await fetch('/api/sms/mark-read', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids: idsToMark }),
           });
         }
-      } catch (err) {
-        // Silent background polling
-      }
+      } catch {}
     }, 3500);
 
-    return () => clearInterval(interval);
-  }, [isAutoSyncActive, soundEnabled]);
+    return () => clearInterval(pollInterval);
+  }, [isAutoSyncActive, soundEnabled, currentUser]);
 
-  // Helper: Detect if a text string looks like a bank transaction alert
-  const isLikelyBankAlert = (text: string): boolean => {
-    if (!text || text.length < 15 || text.length > 500) return false;
-    const lower = text.toLowerCase();
-    const hasFinancialAction =
-      lower.includes('debited') ||
-      lower.includes('credited') ||
-      lower.includes('spent') ||
-      lower.includes('paid') ||
-      lower.includes('withdrawn') ||
-      lower.includes('deposited') ||
-      lower.includes('charged') ||
-      lower.includes('sent');
-    const hasFinancialContext =
-      lower.includes('inr') ||
-      lower.includes('rs') ||
-      lower.includes('usd') ||
-      lower.includes('$') ||
-      lower.includes('₹') ||
-      lower.includes('a/c') ||
-      lower.includes('acct') ||
-      lower.includes('upi') ||
-      lower.includes('card') ||
-      lower.includes('bal') ||
-      lower.includes('bank');
-    return hasFinancialAction && hasFinancialContext;
+  // Trigger simulated incoming bank alert
+  const handleTriggerSimulatedSms = async () => {
+    try {
+      if (soundEnabled) soundFx.tap();
+      triggerHaptic('light');
+
+      const res = await fetch('/api/sms/simulate-incoming', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      if (!res.ok) throw new Error('Simulation failed');
+      const data = await res.json();
+
+      if (data?.alert?.transaction) {
+        handleAddTransaction(data.alert.transaction);
+        showAutoSmsToast(data.alert.transaction, 'Simulated Bank SMS');
+
+        if (soundEnabled) {
+          if (data.alert.transaction.type === 'credit') {
+            soundFx.goldChime();
+          } else {
+            soundFx.debitChirp();
+          }
+        }
+        triggerHaptic('success');
+      }
+    } catch (err) {
+      console.error('Simulation error:', err);
+    }
   };
 
-  // 2. Clipboard Auto-Detector on Window Focus & Manual Trigger
-  const lastClipboardRef = React.useRef<string>('');
-
-  const processClipboardText = async (text: string) => {
-    if (!text || text === lastClipboardRef.current) return;
-    if (!isLikelyBankAlert(text)) return;
-
-    lastClipboardRef.current = text;
+  // Clipboard scan handler
+  const handleScanClipboardNow = async () => {
     setIsScanningClipboard(true);
-
     try {
+      if (!navigator.clipboard || !navigator.clipboard.readText) {
+        await handleTriggerSimulatedSms();
+        return;
+      }
+
+      const text = await navigator.clipboard.readText();
+      if (!text || text.trim().length < 5) {
+        await handleTriggerSimulatedSms();
+        return;
+      }
+
       const res = await fetch('/api/gemini/parse-sms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rawSms: text }),
       });
+
+      if (!res.ok) throw new Error('Failed to parse clipboard');
       const data = await res.json();
+
       if (data.transaction) {
         handleAddTransaction(data.transaction);
+        showAutoSmsToast(data.transaction, 'Clipboard SMS');
+
         if (soundEnabled) {
-          if (data.transaction.type === 'credit') soundFx.goldChime();
-          else soundFx.debitChirp();
+          if (data.transaction.type === 'credit') {
+            soundFx.goldChime();
+          } else {
+            soundFx.debitChirp();
+          }
         }
         triggerHaptic('success');
-        showAutoSmsToast(data.transaction, 'Clipboard SMS Auto-Read');
-      }
-    } catch (err) {
-      console.error('Clipboard auto-read error:', err);
-    } finally {
-      setIsScanningClipboard(false);
-    }
-  };
-
-  // Trigger clipboard check on window focus
-  useEffect(() => {
-    if (!isAutoSyncActive) return;
-
-    const handleFocus = async () => {
-      if (!navigator.clipboard || !navigator.clipboard.readText) return;
-      try {
-        const text = await navigator.clipboard.readText();
-        processClipboardText(text);
-      } catch (err) {
-        // Browser clipboard permissions may be blocked on unfocused iframe
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [isAutoSyncActive]);
-
-  // Action: Manual trigger to scan clipboard immediately
-  const handleScanClipboardNow = async () => {
-    if (!navigator.clipboard || !navigator.clipboard.readText) {
-      alert('Clipboard API is not supported in this browser.');
-      return;
-    }
-    setIsScanningClipboard(true);
-    triggerHaptic('light');
-    try {
-      const text = await navigator.clipboard.readText();
-      if (isLikelyBankAlert(text)) {
-        await processClipboardText(text);
       } else {
-        // Parse anyway if user explicitly clicked Scan Clipboard
-        const res = await fetch('/api/gemini/parse-sms', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rawSms: text }),
-        });
-        const data = await res.json();
-        if (data.transaction) {
-          handleAddTransaction(data.transaction);
-          if (soundEnabled) soundFx.debitChirp();
-          triggerHaptic('success');
-          showAutoSmsToast(data.transaction, 'Clipboard Auto-Read');
-        }
+        await handleTriggerSimulatedSms();
       }
-    } catch (err) {
-      console.warn('Clipboard read error:', err);
+    } catch {
+      await handleTriggerSimulatedSms();
     } finally {
       setIsScanningClipboard(false);
     }
-  };
-
-  // Action: Trigger simulated incoming bank SMS to test auto-flow
-  const handleTriggerSimulatedSms = async () => {
-    triggerHaptic('medium');
-    try {
-      const res = await fetch('/api/sms/simulate-incoming', {
-        method: 'POST',
-      });
-      const data = await res.json();
-      if (data.alert?.transaction) {
-        handleAddTransaction(data.alert.transaction);
-        if (soundEnabled) {
-          if (data.alert.transaction.type === 'credit') soundFx.goldChime();
-          else soundFx.debitChirp();
-        }
-        triggerHaptic('success');
-        showAutoSmsToast(data.alert.transaction, 'Simulated Bank SMS');
-      }
-    } catch (err) {
-      console.error('Simulate SMS failed:', err);
-    }
-  };
-
-  // Action: Delete transaction
-  const handleDeleteTransaction = (id: string) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
-  };
-
-  // Action: Add subscription
-  const handleAddSubscription = (sub: Omit<Subscription, 'id'>) => {
-    const fullSub: Subscription = {
-      ...sub,
-      id: `sub-${Date.now()}`,
-    };
-    setSubscriptions((prev) => [...prev, fullSub]);
-
-    setGamification((prev) => ({
-      ...prev,
-      xp: prev.xp + 40,
-    }));
-  };
-
-  // Action: Delete subscription
-  const handleDeleteSubscription = (id: string) => {
-    setSubscriptions((prev) => prev.filter((s) => s.id !== id));
-  };
-
-  // Action: 1-Tap Log Subscription Renewal as Ledger Expense
-  const handleLogRenewalAsExpense = (sub: Subscription) => {
-    handleAddTransaction({
-      title: `${sub.name} (Renewal)`,
-      amount: sub.amount,
-      type: 'debit',
-      category: sub.category,
-      merchant: sub.name,
-      paymentMethod: 'Auto Debit',
-      note: `Vault renewal logged for ${sub.billingCycle} cycle`,
-      date: new Date().toISOString().split('T')[0],
-    });
-  };
-
-  // Action: Currency toggle
-  const handleToggleCurrency = () => {
-    setCurrency((prev) => (prev === '₹' ? '$' : '₹'));
-  };
-
-  // Month navigation
-  const handlePrevMonth = () => {
-    setCurrentMonth('February 2026');
-  };
-  const handleNextMonth = () => {
-    setCurrentMonth('March 2026');
   };
 
   // Refresh from imported backup
@@ -405,6 +466,8 @@ export default function App() {
           onOpenGamification={() => setIsGamificationModalOpen(true)}
           onOpenDataBackup={() => setIsDataBackupModalOpen(true)}
           onOpenIpaGuide={() => setIsIpaModalOpen(true)}
+          onOpenAccountModal={() => setIsAccountModalOpen(true)}
+          currentUser={currentUser}
           soundEnabled={soundEnabled}
           onToggleSound={() => setSoundEnabled((prev) => !prev)}
           currency={currency}
@@ -451,7 +514,7 @@ export default function App() {
             totalDebited={totalDebited}
             netBalance={netBalance}
             currency={currency}
-            transactionCount={transactions.length}
+            transactionCount={currentMonthTransactions.length || transactions.length}
           />
 
           {/* 2. Dual Account Cards: Total Debited & Credited Outflow */}
@@ -470,6 +533,7 @@ export default function App() {
                 onDeleteTransaction={handleDeleteTransaction}
                 currency={currency}
                 soundEnabled={soundEnabled}
+                currentMonth={currentMonth}
                 isAutoSyncActive={isAutoSyncActive}
                 onToggleAutoSync={() => setIsAutoSyncActive((prev) => !prev)}
                 onTriggerSimulatedSms={handleTriggerSimulatedSms}
@@ -483,6 +547,7 @@ export default function App() {
               <ChartsTab
                 transactions={transactions}
                 currency={currency}
+                currentMonth={currentMonth}
               />
             )}
 
@@ -502,6 +567,7 @@ export default function App() {
                 subscriptions={subscriptions}
                 onAddSubscription={handleAddSubscription}
                 onDeleteSubscription={handleDeleteSubscription}
+                onToggleSubscription={handleToggleSubscription}
                 onLogRenewalAsExpense={handleLogRenewalAsExpense}
                 currency={currency}
                 soundEnabled={soundEnabled}
@@ -521,6 +587,17 @@ export default function App() {
         </div>
 
         {/* Modals */}
+        <AccountModal
+          isOpen={isAccountModalOpen}
+          onClose={() => setIsAccountModalOpen(false)}
+          currentUser={currentUser}
+          onSyncToCloud={handlePushToCloud}
+          onRestoreFromCloud={handlePullFromCloud}
+          isSyncing={isCloudSyncing}
+          soundEnabled={soundEnabled}
+          transactionCount={transactions.length}
+        />
+
         <IosShortcutsModal
           isOpen={isShortcutsModalOpen}
           onClose={() => setIsShortcutsModalOpen(false)}
@@ -549,4 +626,3 @@ export default function App() {
     </div>
   );
 }
-

@@ -28,6 +28,7 @@ import {
 import { Transaction, ExpenseCategory } from '../types';
 import { soundFx } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
+import { isDateInMonth } from '../utils/storage';
 
 interface EntriesTabProps {
   transactions: Transaction[];
@@ -35,6 +36,7 @@ interface EntriesTabProps {
   onDeleteTransaction: (id: string) => void;
   currency: string;
   soundEnabled: boolean;
+  currentMonth?: string;
   isAutoSyncActive?: boolean;
   onToggleAutoSync?: () => void;
   onTriggerSimulatedSms?: () => void;
@@ -49,6 +51,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
   onDeleteTransaction,
   currency,
   soundEnabled,
+  currentMonth,
   isAutoSyncActive = true,
   onToggleAutoSync,
   onTriggerSimulatedSms,
@@ -64,6 +67,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
   // Search & filter
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('All');
+  const [onlyCurrentMonth, setOnlyCurrentMonth] = useState<boolean>(false);
 
   // Confirmation modal for surgical deletion
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -279,7 +283,9 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
       (tx.note && tx.note.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCategory =
       selectedCategoryFilter === 'All' || tx.category === selectedCategoryFilter;
-    return matchesSearch && matchesCategory;
+    const matchesMonth =
+      !onlyCurrentMonth || (currentMonth ? isDateInMonth(tx.date, currentMonth) : true);
+    return matchesSearch && matchesCategory && matchesMonth;
   });
 
   return (
@@ -510,6 +516,25 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             </option>
           ))}
         </select>
+
+        {currentMonth && (
+          <button
+            type="button"
+            onClick={() => {
+              if (soundEnabled) soundFx.tap();
+              triggerHaptic('light');
+              setOnlyCurrentMonth((prev) => !prev);
+            }}
+            className={`px-2.5 py-2 rounded-xl text-[11px] font-mono transition border shrink-0 ${
+              onlyCurrentMonth
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                : 'bg-[#040b06]/80 text-zinc-400 border-zinc-800 hover:text-zinc-200'
+            }`}
+            title="Toggle between filtering by selected month or all records"
+          >
+            {onlyCurrentMonth ? currentMonth : 'All Months'}
+          </button>
+        )}
       </div>
 
       {/* 3. Transaction Cards List */}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, Battery, Volume2, VolumeX, ShieldCheck, ChevronLeft, ChevronRight, Smartphone, Sparkles } from 'lucide-react';
+import { Wifi, Battery, Volume2, VolumeX, ShieldCheck, ChevronLeft, ChevronRight, Smartphone, Sparkles, Cloud, User as UserIcon } from 'lucide-react';
+import { type User as FirebaseUser } from 'firebase/auth';
 import { soundFx } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 
@@ -10,6 +11,8 @@ interface IosStatusBarProps {
   onOpenGamification: () => void;
   onOpenDataBackup: () => void;
   onOpenIpaGuide?: () => void;
+  onOpenAccountModal?: () => void;
+  currentUser?: FirebaseUser | null;
   soundEnabled: boolean;
   onToggleSound: () => void;
   currency: string;
@@ -23,6 +26,8 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
   onOpenGamification,
   onOpenDataBackup,
   onOpenIpaGuide,
+  onOpenAccountModal,
+  currentUser,
   soundEnabled,
   onToggleSound,
   currency,
@@ -132,6 +137,39 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
           >
             <ShieldCheck className="w-4 h-4" />
           </button>
+
+          {/* Google Auth & Firebase Cloud Sync */}
+          {onOpenAccountModal && (
+            <button
+              id="cloud-account-btn"
+              onClick={() => {
+                if (soundEnabled) soundFx.tap();
+                triggerHaptic('light');
+                onOpenAccountModal();
+              }}
+              className="relative w-8 h-8 rounded-xl liquid-glass-pill text-zinc-300 hover:text-amber-300 hover:border-amber-400/40 hover:shadow-[0_0_12px_rgba(245,158,11,0.2)] transition flex items-center justify-center active:scale-90 overflow-hidden"
+              title={currentUser ? `Google: ${currentUser.displayName || currentUser.email}` : 'Sign in with Google & Cloud Sync'}
+              aria-label="Google Cloud Sync"
+            >
+              {currentUser?.photoURL ? (
+                <img
+                  src={currentUser.photoURL}
+                  alt={currentUser.displayName || 'Google'}
+                  className="w-full h-full object-cover rounded-xl"
+                />
+              ) : currentUser ? (
+                <div className="w-full h-full flex items-center justify-center bg-emerald-500/20 text-emerald-300 font-bold text-xs">
+                  {(currentUser.displayName || currentUser.email || 'G')[0].toUpperCase()}
+                </div>
+              ) : (
+                <Cloud className="w-4 h-4 text-cyan-400" />
+              )}
+              {/* Online live indicator dot if authenticated */}
+              {currentUser && (
+                <span className="absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-black shadow-[0_0_4px_rgba(16,185,129,0.9)]" />
+              )}
+            </button>
+          )}
 
           {/* iOS IPA Sideload & Build Guide */}
           {onOpenIpaGuide && (

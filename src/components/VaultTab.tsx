@@ -8,6 +8,7 @@ interface VaultTabProps {
   subscriptions: Subscription[];
   onAddSubscription: (sub: Omit<Subscription, 'id'>) => void;
   onDeleteSubscription: (id: string) => void;
+  onToggleSubscription?: (id: string) => void;
   onLogRenewalAsExpense: (sub: Subscription) => void;
   currency: string;
   soundEnabled: boolean;
@@ -17,6 +18,7 @@ export const VaultTab: React.FC<VaultTabProps> = ({
   subscriptions,
   onAddSubscription,
   onDeleteSubscription,
+  onToggleSubscription,
   onLogRenewalAsExpense,
   currency,
   soundEnabled,
@@ -25,7 +27,11 @@ export const VaultTab: React.FC<VaultTabProps> = ({
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
-  const [nextDueDate, setNextDueDate] = useState('2026-03-25');
+  const [nextDueDate, setNextDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    return d.toISOString().split('T')[0];
+  });
   const [category, setCategory] = useState<ExpenseCategory>('Bills & Utilities');
 
   // Calculate Monthly Burn & Annualized Burn
@@ -40,7 +46,7 @@ export const VaultTab: React.FC<VaultTabProps> = ({
   const annualizedBurn = monthlyBurn * 12;
 
   // Check upcoming renewals within 7 days
-  const today = new Date('2026-03-16');
+  const today = new Date();
   const upcomingRenewals = subscriptions.filter((s) => {
     if (!s.active) return false;
     const due = new Date(s.nextDueDate);
