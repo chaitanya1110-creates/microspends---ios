@@ -13,20 +13,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Dependencies & Native Bindings
         run: |
-          # 1. Remove Linux-generated lockfile to allow macOS native architecture resolution
+          # 1. Remove Linux lockfile so npm installs macOS native binaries
           rm -f package-lock.json
 
           # 2. Install base dependencies
           npm install --legacy-peer-deps
 
-          # 3. Explicitly install macOS native bindings for Tailwind Oxide & Rolldown (Apple Silicon macOS runner)
+          # 3. Explicitly install macOS native bindings for Tailwind Oxide & Rolldown
           npm install --legacy-peer-deps @tailwindcss/oxide-darwin-arm64 @rolldown/binding-darwin-arm64 || true
 
           # 4. Install Capacitor iOS toolchain
