@@ -38,15 +38,41 @@ jobs:
 
       - name: Initialize & Sync Capacitor iOS
         run: |
-          if [ ! -d "ios" ]; then
+          # Ensure fresh clean iOS project setup
+          if [ ! -d "ios/App" ]; then
+            rm -rf ios
             npx cap add ios
           fi
           npx cap sync ios
 
+          # If App.xcworkspace is missing, run pod install to generate it
+          if [ ! -d "ios/App/App.xcworkspace" ] && [ -f "ios/App/Podfile" ]; then
+            echo "Generating App.xcworkspace via pod install..."
+            cd ios/App
+            pod install || true
+            cd ../..
+          fi
+
+          echo "Listing generated files in ios/App:"
+          ls -la ios/App
+
       - name: Build Native iOS App (xcodebuild)
         run: |
+          # Select workspace if available, otherwise fallback to xcodeproj
+          if [ -d "ios/App/App.xcworkspace" ]; then
+            BUILD_TARGET="-workspace ios/App/App.xcworkspace"
+          elif [ -d "ios/App/App.xcodeproj" ]; then
+            BUILD_TARGET="-project ios/App/App.xcodeproj"
+          else
+            echo "Error: No Xcode workspace or project found in ios/App!"
+            find ios -maxdepth 3 || true
+            exit 1
+          fi
+
+          echo "Building using: $BUILD_TARGET"
+
           xcodebuild \
-            -workspace ios/App/App.xcworkspace \
+            $BUILD_TARGET \
             -scheme App \
             -sdk iphoneos \
             -configuration Release \
@@ -59,9 +85,11 @@ jobs:
       - name: Package into Native .ipa
         run: |
           mkdir -p ipa_build/Payload
-          APP_PATH=$(find ios/App -type d -name "App.app" | grep "Release-iphoneos" | head -n 1)
+          APP_PATH=$(find . -name "App.app" -type d | grep -v "ipa_build" | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            APP_PATH=$(find ios/App -type d -name "App.app" | head -n 1)
+            echo "Error: App.app was not found!"
+            find . -name "*.app" || true
+            exit 1
           fi
           echo "Found compiled App.app at: $APP_PATH"
           cp -R "$APP_PATH" ipa_build/Payload/
