@@ -1,53 +1,69 @@
-name: Build Native iOS IPA
+name: Build iOS IPA (Free)
 
 on:
-  workflow_dispatch: # Allows manual trigger from GitHub UI
   push:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-14 # Real Apple Silicon Mac runner with Xcode 15/16
+    name: Compile Full Native iOS IPA
+    runs-on: macos-14
     steps:
-      - name: Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
-      - name: Install Dependencies & Build Web Assets
+      - name: Install Dependencies
         run: |
-          npm ci || npm install
+          npm install --legacy-peer-deps
+          npm install --legacy-peer-deps @capacitor/core@latest @capacitor/cli@latest @capacitor/ios@latest
+
+      - name: Build Web App
+        run: |
           npm run build
 
-      - name: Add Capacitor iOS Platform & Sync
+      - name: Initialize & Sync Capacitor iOS
         run: |
-          npx cap add ios || true
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
           npx cap sync ios
 
-      - name: Compile Native iOS Binary with Xcode
+      - name: Build Native iOS App (xcodebuild)
         run: |
-          xcodebuild clean build \
+          xcodebuild \
             -workspace ios/App/App.xcworkspace \
             -scheme App \
-            -configuration Release \
             -sdk iphoneos \
-            -derivedDataPath build \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
             CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build
 
-      - name: Package Full-Version .IPA
+      - name: Package into Native .ipa
         run: |
-          mkdir -p Payload
-          cp -r build/Build/Products/Release-iphoneos/App.app Payload/
-          zip -qr MicroSpends-Full.ipa Payload
+          mkdir -p ipa_build/Payload
+          APP_PATH=$(find ios/App -type d -name "App.app" | grep "Release-iphoneos" | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            APP_PATH=$(find ios/App -type d -name "App.app" | head -n 1)
+          fi
+          echo "Found compiled App.app at: $APP_PATH"
+          cp -R "$APP_PATH" ipa_build/Payload/
+          cd ipa_build
+          zip -r -q ../MicroSpends-Full.ipa Payload
+          cd ..
           ls -lh MicroSpends-Full.ipa
 
-      - name: Upload .IPA Artifact
+      - name: Upload .ipa Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MicroSpends-iOS-Full-IPA
+          name: MicroSpends-Full-IPA
           path: MicroSpends-Full.ipa
+          retention-days: 14
