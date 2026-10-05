@@ -1,0 +1,53 @@
+name: Build Native iOS IPA
+
+on:
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-14 # Real Apple Silicon Mac runner with Xcode 15/16
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies & Build Web Assets
+        run: |
+          npm ci || npm install
+          npm run build
+
+      - name: Add Capacitor iOS Platform & Sync
+        run: |
+          npx cap add ios || true
+          npx cap sync ios
+
+      - name: Compile Native iOS Binary with Xcode
+        run: |
+          xcodebuild clean build \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Package Full-Version .IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qr MicroSpends-Full.ipa Payload
+          ls -lh MicroSpends-Full.ipa
+
+      - name: Upload .IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MicroSpends-iOS-Full-IPA
+          path: MicroSpends-Full.ipa
