@@ -18,13 +18,18 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Dependencies
+      - name: Install Dependencies & Native Bindings
         run: |
-          # Install base dependencies
+          # 1. Remove Linux-generated lockfile to allow macOS native architecture resolution
+          rm -f package-lock.json
+
+          # 2. Install base dependencies
           npm install --legacy-peer-deps
-          # Install platform-specific Rolldown native bindings for macOS runners
-          npm install --legacy-peer-deps @rolldown/binding-darwin-arm64 @rolldown/binding-darwin-x64 || true
-          # Install Capacitor iOS packages
+
+          # 3. Explicitly install macOS native bindings for Tailwind Oxide & Rolldown (Apple Silicon macOS runner)
+          npm install --legacy-peer-deps @tailwindcss/oxide-darwin-arm64 @rolldown/binding-darwin-arm64 || true
+
+          # 4. Install Capacitor iOS toolchain
           npm install --legacy-peer-deps @capacitor/core@latest @capacitor/cli@latest @capacitor/ios@latest
 
       - name: Build Web App
