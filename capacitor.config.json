@@ -1,0 +1,6 @@
+{
+  "appId": "com.microspends.app",
+  "appName": "MicroSpends",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
