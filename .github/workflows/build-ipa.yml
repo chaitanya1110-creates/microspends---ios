@@ -20,12 +20,16 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          # Install base dependencies
           npm install --legacy-peer-deps
+          # Install platform-specific Rolldown native bindings for macOS runners
+          npm install --legacy-peer-deps @rolldown/binding-darwin-arm64 @rolldown/binding-darwin-x64 || true
+          # Install Capacitor iOS packages
           npm install --legacy-peer-deps @capacitor/core@latest @capacitor/cli@latest @capacitor/ios@latest
 
       - name: Build Web App
         run: |
-          npm run build
+          npx vite build
 
       - name: Initialize & Sync Capacitor iOS
         run: |
