@@ -455,8 +455,8 @@ export default function App() {
       {/* Flowing Golden Particles Ambient Background */}
       <GoldenParticlesBackground />
 
-      {/* Mobile Shell / iOS Device Container */}
-      <div className="w-full max-w-md min-h-[100dvh] flex flex-col bg-[#020403]/90 backdrop-blur-[2px] shadow-[0_0_80px_rgba(0,0,0,0.95)] sm:border-x sm:border-zinc-900/80 border-x-0 relative z-10">
+      {/* Mobile & Desktop Haute Horlogerie Console Container */}
+      <div className="w-full max-w-lg md:max-w-2xl lg:max-w-3xl min-h-[100dvh] flex flex-col bg-[#050706]/95 backdrop-blur-[3px] shadow-[0_0_90px_rgba(0,0,0,0.95)] sm:border-x sm:border-[#D4AF37]/20 border-x-0 relative z-10">
         
         {/* Persistent iOS Header & Month Selector */}
         <IosStatusBar
@@ -577,7 +577,7 @@ export default function App() {
         </main>
 
         {/* Persistent 4-Way Tab Bar */}
-        <div className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-md z-40">
+        <div className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-lg md:max-w-2xl lg:max-w-3xl z-40">
           <TabBar
             activeTab={activeTab}
             onChangeTab={setActiveTab}

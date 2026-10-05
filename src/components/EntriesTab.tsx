@@ -291,14 +291,16 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
   return (
     <div className="space-y-4">
       {/* 1. Natural Language AI Input Bar */}
-      <div className="rounded-2xl p-3.5 liquid-glass-card rgb-border-subtle shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5 text-xs text-amber-300 font-cinzel font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span>Natural Gemini Ledger</span>
+      <div className="rounded-2xl p-4 horology-bezel shadow-[0_12px_36px_rgba(0,0,0,0.85)]">
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="flex items-center gap-2">
+            <span className="ruby-bearing" />
+            <span className="text-xs font-serif font-bold tracking-wider gold-leaf-text uppercase">
+              Atelier Chrono Ledger · Gemini AI
+            </span>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             {/* Bank SMS Scanner Button */}
             <button
               onClick={() => {
@@ -306,11 +308,11 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 triggerHaptic('light');
                 setIsSmsModalOpen(true);
               }}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg liquid-glass-pill hover:border-emerald-400/40 text-xs text-zinc-300 transition"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg knurled-crown text-xs text-zinc-300 hover:text-[#F5D478] transition"
               title="Parse Bank SMS Alert"
             >
-              <MessageSquare className="w-3 h-3 text-emerald-400" />
-              <span>SMS</span>
+              <MessageSquare className="w-3 h-3 text-[#D4AF37]" />
+              <span className="font-serif text-[11px] uppercase tracking-wider">SMS</span>
             </button>
 
             {/* Manual Form Button */}
@@ -320,11 +322,11 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 triggerHaptic('light');
                 setIsManualModalOpen(true);
               }}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg liquid-glass-pill hover:border-amber-400/40 text-xs text-amber-300 transition"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg knurled-crown text-xs text-[#F5D478] hover:border-[#D4AF37] transition"
               title="Manual Form"
             >
-              <Plus className="w-3 h-3 text-amber-400" />
-              <span>Manual</span>
+              <Plus className="w-3 h-3 text-[#F5D478]" />
+              <span className="font-serif text-[11px] uppercase tracking-wider">Manuel</span>
             </button>
           </div>
         </div>
@@ -335,8 +337,8 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="e.g., 'Chipotle lunch 18.50' or 'Salary 45000 credited'"
-            className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 pl-3 pr-20 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-400/80 transition backdrop-blur-md shadow-inner"
+            placeholder="e.g., 'Audemars service 350' or 'Consulting retainer 4500 credited'"
+            className="w-full bg-[#030604]/90 border border-[#D4AF37]/25 rounded-xl py-2.5 pl-3.5 pr-20 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37]/80 transition backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] font-sans"
             disabled={isParsing}
           />
 
@@ -349,8 +351,8 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 triggerHaptic('light');
                 handleStartVoice();
               }}
-              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 hover:text-amber-300 transition"
-              title="Voice Input"
+              className="p-1.5 rounded-lg bg-[#0F1411] border border-[#D4AF37]/30 hover:bg-[#1A211D] text-[#F5D478] transition shadow-sm"
+              title="Voice Input Complication"
             >
               <Mic className="w-3.5 h-3.5" />
             </button>
@@ -359,12 +361,12 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             <button
               type="submit"
               disabled={!inputText.trim() || isParsing}
-              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold text-xs transition disabled:opacity-40 flex items-center gap-1"
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] hover:brightness-110 text-black font-serif font-bold text-xs transition disabled:opacity-40 flex items-center gap-1 shadow-md shadow-[#D4AF37]/20"
             >
               {isParsing ? (
                 <span className="animate-spin text-xs">↻</span>
               ) : (
-                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               )}
             </button>
           </div>
@@ -539,18 +541,23 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
       {/* 3. Transaction Cards List */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs font-cinzel font-bold text-zinc-400 px-1">
-          <span>Obsidian Ledger</span>
-          <span className="text-[11px] font-mono text-zinc-500">
-            {filteredTransactions.length} entries
+        <div className="flex items-center justify-between text-xs px-1">
+          <div className="flex items-center gap-1.5">
+            <span className="ruby-bearing" />
+            <span className="font-serif font-bold text-[#E5C378] uppercase tracking-wider text-xs">
+              Livre des Écritures · Master Ledger
+            </span>
+          </div>
+          <span className="text-[11px] font-mono text-[#D4AF37]/70">
+            {filteredTransactions.length} {filteredTransactions.length === 1 ? 'acte' : 'actes'}
           </span>
         </div>
 
         {filteredTransactions.length === 0 ? (
-          <div className="text-center py-10 px-4 rounded-xl border border-dashed border-zinc-800 bg-[#030805]/50">
-            <Tag className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
-            <p className="text-xs text-zinc-400">No transactions recorded for this filter.</p>
-            <p className="text-[11px] text-zinc-600 mt-1">Type in the top bar to record an entry.</p>
+          <div className="text-center py-10 px-4 rounded-xl border border-dashed border-[#D4AF37]/20 bg-[#060907]/60">
+            <Tag className="w-8 h-8 text-[#D4AF37]/40 mx-auto mb-2" />
+            <p className="text-xs font-serif text-zinc-300">Aucune écriture enregistrée pour cette sélection.</p>
+            <p className="text-[11px] font-mono text-zinc-500 mt-1">Utilisez l'Atelier IA ci-dessus pour consigner un acte.</p>
           </div>
         ) : (
           filteredTransactions.map((tx) => {
@@ -560,15 +567,15 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             return (
               <div
                 key={tx.id}
-                className="group relative rounded-2xl p-3 liquid-glass hover:border-white/20 transition-all shadow-sm flex items-center justify-between gap-3 active:scale-[0.99]"
+                className="group relative rounded-xl p-3 bg-gradient-to-b from-[#101512] to-[#070A08] border border-[#D4AF37]/20 hover:border-[#D4AF37]/55 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.6)] flex items-center justify-between gap-3 active:scale-[0.99]"
               >
                 {/* Left: Icon & Details */}
                 <div className="flex items-center gap-3 min-w-0">
                   <div
                     className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
                       isCredit
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                        : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                        ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.2)]'
+                        : 'bg-rose-950/70 border-rose-500/30 text-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.2)]'
                     }`}
                   >
                     {isCredit ? (
@@ -579,18 +586,18 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                   </div>
 
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xs font-semibold text-zinc-100 truncate">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h3 className="text-xs font-serif font-bold text-zinc-100 truncate">
                         {tx.title}
                       </h3>
-                      <span className="px-1.5 py-0.2 rounded bg-zinc-900 border border-zinc-800 text-[9px] font-mono text-amber-300/80 shrink-0">
-                        {tx.category}
+                      <span className="text-[10px] font-serif text-[#E5C378] shrink-0 font-medium">
+                        · {tx.category}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono mt-0.5">
+                    <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-mono mt-0.5">
                       <span>{tx.date}</span>
-                      <span>•</span>
+                      <span className="text-[#D4AF37]/50">·</span>
                       <span className="truncate">{tx.merchant}</span>
                     </div>
                   </div>
@@ -598,10 +605,10 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
                 {/* Right: Amount & Surgical Delete */}
                 <div className="flex items-center gap-2.5 shrink-0">
-                  <div className="text-right font-mono">
+                  <div className="text-right">
                     <div
-                      className={`text-sm font-bold tracking-tight ${
-                        isCredit ? 'text-emerald-400' : 'text-amber-200'
+                      className={`text-sm font-serif font-bold tracking-tight ${
+                        isCredit ? 'text-emerald-400' : 'text-[#F5D478]'
                       }`}
                     >
                       {isCredit ? '+' : '-'}
@@ -611,12 +618,12 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                         maximumFractionDigits: 2,
                       })}
                     </div>
-                    <div className="text-[9px] text-zinc-500">{tx.paymentMethod}</div>
+                    <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-tighter">{tx.paymentMethod}</div>
                   </div>
 
-                  {/* Surgical Delete Button (20dp footprint) */}
+                  {/* Surgical Delete Button */}
                   {isConfirmingDelete ? (
-                    <div className="flex items-center gap-1 bg-rose-950/80 border border-rose-500/50 p-1 rounded-lg">
+                    <div className="flex items-center gap-1 bg-rose-950/90 border border-rose-500/50 p-1 rounded-lg shadow-lg">
                       <button
                         onClick={() => {
                           onDeleteTransaction(tx.id);
@@ -625,14 +632,14 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                           triggerHaptic('heavy');
                         }}
                         className="p-1 rounded bg-rose-600 text-white hover:bg-rose-500 transition"
-                        title="Confirm Delete"
+                        title="Confirmer la suppression"
                       >
                         <Check className="w-3 h-3" />
                       </button>
                       <button
                         onClick={() => setDeleteConfirmId(null)}
                         className="p-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition"
-                        title="Cancel"
+                        title="Annuler"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -645,7 +652,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                         setDeleteConfirmId(tx.id);
                       }}
                       className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition active:scale-90"
-                      title="Delete Transaction"
+                      title="Supprimer l'acte"
                       aria-label="Delete Transaction"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

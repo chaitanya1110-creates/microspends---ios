@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Plus, Calendar, AlertTriangle, ArrowRight, Check, Trash2, X, Sparkles, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Plus, Calendar, AlertTriangle, ArrowRight, Check, Trash2, X, RefreshCw } from 'lucide-react';
 import { Subscription, BillingCycle, Transaction, ExpenseCategory } from '../types';
 import { soundFx } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
@@ -76,13 +76,13 @@ export const VaultTab: React.FC<VaultTabProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* 1. Vault Burn Rate Metrics Header */}
-      <div className="rounded-2xl p-4 bg-gradient-to-b from-[#08180c]/90 to-[#020503]/95 border border-amber-500/30 shadow-2xl backdrop-blur-xl">
-        <div className="flex items-center justify-between mb-3">
+      {/* 1. Grand Complication Vault Header */}
+      <div className="rounded-2xl p-4 horology-bezel shadow-[0_16px_40px_rgba(0,0,0,0.85)]">
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#D4AF37]/15">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-amber-400" />
-            <h3 className="font-cinzel text-xs font-bold text-amber-200 uppercase tracking-wider">
-              Vault Burn Rate Sentinel
+            <span className="ruby-bearing" />
+            <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
+              Coffre-Fort Perpétuel · Vault Burn Rate
             </h3>
           </div>
           <button
@@ -91,50 +91,51 @@ export const VaultTab: React.FC<VaultTabProps> = ({
               triggerHaptic('light');
               setIsAddModalOpen(true);
             }}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-medium transition active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg knurled-crown text-xs text-[#F5D478] hover:border-[#D4AF37] transition active:scale-95 font-serif"
           >
-            <Plus className="w-3 h-3 text-amber-400" />
-            <span>Add Service</span>
+            <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <span className="uppercase tracking-wider">Ajouter</span>
           </button>
         </div>
 
+        {/* Dual Complication Chambers */}
         <div className="grid grid-cols-2 gap-3">
-          {/* Monthly Burn */}
-          <div className="p-3 rounded-xl bg-black/40 border border-zinc-800/80">
-            <span className="text-[10px] font-cinzel font-bold text-zinc-400 uppercase tracking-wider">
-              Monthly Burn Rate
+          {/* Monthly Burn Chamber */}
+          <div className="horology-subdial rounded-xl p-3 flex flex-col justify-between">
+            <span className="text-[10px] font-serif uppercase tracking-widest text-[#E5C378]">
+              Débit Mensuel Récurrent
             </span>
-            <div className="font-mono text-lg sm:text-xl font-bold text-amber-300 mt-0.5">
+            <div className="font-serif text-xl sm:text-2xl font-bold gold-leaf-text mt-1">
               {currency}{Math.round(monthlyBurn).toLocaleString()}
             </div>
-            <span className="text-[10px] text-zinc-500 font-mono">per calendar month</span>
+            <span className="text-[9px] text-zinc-500 font-mono mt-0.5">par cycle de 30 jours</span>
           </div>
 
-          {/* Annualized Burn */}
-          <div className="p-3 rounded-xl bg-black/40 border border-zinc-800/80">
-            <span className="text-[10px] font-cinzel font-bold text-zinc-400 uppercase tracking-wider">
-              Annualized Commitment
+          {/* Annualized Burn Chamber */}
+          <div className="horology-subdial rounded-xl p-3 flex flex-col justify-between">
+            <span className="text-[10px] font-serif uppercase tracking-widest text-[#E5C378]">
+              Engagement Annuel
             </span>
-            <div className="font-mono text-lg sm:text-xl font-bold text-rose-300 mt-0.5">
+            <div className="font-serif text-xl sm:text-2xl font-bold text-rose-300 mt-1">
               {currency}{Math.round(annualizedBurn).toLocaleString()}
             </div>
-            <span className="text-[10px] text-zinc-500 font-mono">12-month projection</span>
+            <span className="text-[9px] text-zinc-500 font-mono mt-0.5">projection 365 jours</span>
           </div>
         </div>
       </div>
 
-      {/* 2. Renewal Alert Radar (Next 7 Days) */}
+      {/* 2. Renewal Alarm Complication (Next 7 Days) */}
       {upcomingRenewals.length > 0 && (
-        <div className="rounded-2xl p-4 bg-gradient-to-r from-amber-950/40 via-[#071309]/80 to-black border border-amber-500/40 shadow-xl space-y-2.5">
+        <div className="rounded-2xl p-4 bg-gradient-to-r from-[#211709] via-[#0E1510] to-[#070B09] border border-[#D4AF37]/45 shadow-xl space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400 animate-bounce" />
-              <h4 className="font-cinzel text-xs font-bold text-amber-300 uppercase tracking-wider">
-                Renewal Alert Radar (Next 7 Days)
+              <AlertTriangle className="w-4 h-4 text-[#F5D478] animate-pulse" />
+              <h4 className="font-serif text-xs font-bold text-[#FFF3C4] uppercase tracking-wider">
+                Alerte Sonnerie · Échéances Proches (7 Jours)
               </h4>
             </div>
-            <span className="text-[10px] font-mono bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
-              {upcomingRenewals.length} Due Soon
+            <span className="text-[10px] font-serif text-[#D4AF37] px-2 py-0.5 rounded-full border border-[#D4AF37]/40 bg-black/40">
+              {upcomingRenewals.length} échéance{upcomingRenewals.length > 1 ? 's' : ''}
             </span>
           </div>
 
@@ -142,16 +143,16 @@ export const VaultTab: React.FC<VaultTabProps> = ({
             {upcomingRenewals.map((sub) => (
               <div
                 key={sub.id}
-                className="p-2.5 rounded-xl bg-black/60 border border-amber-500/20 flex items-center justify-between gap-2"
+                className="p-3 rounded-xl bg-black/70 border border-[#D4AF37]/25 flex items-center justify-between gap-2"
               >
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-zinc-100">{sub.name}</span>
-                    <span className="text-[10px] font-mono text-amber-400">
-                      Due {sub.nextDueDate}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs font-serif font-bold text-zinc-100">{sub.name}</span>
+                    <span className="text-[10px] font-mono text-[#F5D478]">
+                      · Échéance {sub.nextDueDate}
                     </span>
                   </div>
-                  <span className="text-[11px] font-mono text-zinc-400">
+                  <span className="text-[11px] font-serif text-zinc-400">
                     {currency}{sub.amount.toLocaleString()} / {sub.billingCycle}
                   </span>
                 </div>
@@ -163,11 +164,11 @@ export const VaultTab: React.FC<VaultTabProps> = ({
                     if (soundEnabled) soundFx.debitChirp();
                     triggerHaptic('success');
                   }}
-                  className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-black font-bold text-[11px] font-mono transition flex items-center gap-1 shadow-md shadow-emerald-950/40 active:scale-95 shrink-0"
-                  title="Record renewal into Obsidian ledger"
+                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] hover:brightness-110 text-black font-serif font-bold text-xs transition flex items-center gap-1.5 shadow-md shadow-[#D4AF37]/20 active:scale-95 shrink-0"
+                  title="Consigner cette échéance dans le registre"
                 >
-                  <RefreshCw className="w-3 h-3 stroke-[3]" />
-                  <span>Log as Expense</span>
+                  <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Consigner</span>
                 </button>
               </div>
             ))}
@@ -176,43 +177,48 @@ export const VaultTab: React.FC<VaultTabProps> = ({
       )}
 
       {/* 3. Subscriptions Vault List */}
-      <div className="rounded-2xl p-4 bg-[#030a05]/95 border border-zinc-800 shadow-xl space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-cinzel text-xs font-bold text-amber-200 uppercase tracking-wider">
-            Active Vault Subscriptions ({subscriptions.length})
-          </h3>
-          <span className="text-[10px] font-mono text-zinc-500">Auto-Burn Tracking</span>
+      <div className="rounded-2xl p-4 horology-bezel shadow-xl space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15">
+          <div className="flex items-center gap-2">
+            <span className="ruby-bearing" />
+            <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
+              Services Actifs au Coffre ({subscriptions.length})
+            </h3>
+          </div>
+          <span className="text-[10px] font-serif text-[#D4AF37]/70 uppercase tracking-widest">
+            SURVEILLANCE COMPLÈTE
+          </span>
         </div>
 
         <div className="space-y-2">
           {subscriptions.map((sub) => (
             <div
               key={sub.id}
-              className="p-3 rounded-xl bg-black/40 border border-zinc-800/80 hover:border-amber-500/30 transition flex items-center justify-between gap-2"
+              className="p-3 rounded-xl bg-gradient-to-b from-[#101512] to-[#070A08] border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition flex items-center justify-between gap-2"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                  <Shield className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/25 text-[#F5D478] flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-zinc-100">{sub.name}</span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
-                      {sub.billingCycle}
+                    <span className="text-xs font-serif font-bold text-zinc-100">{sub.name}</span>
+                    <span className="text-[10px] font-serif text-[#D4AF37] font-medium">
+                      · {sub.billingCycle}
                     </span>
                   </div>
-                  <div className="text-[10px] font-mono text-zinc-500 mt-0.5">
-                    Next renewal: {sub.nextDueDate} • {sub.category}
+                  <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
+                    Prochaine échéance: {sub.nextDueDate} · {sub.category}
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="text-right font-mono">
-                  <div className="text-xs font-bold text-amber-300">
+                <div className="text-right">
+                  <div className="text-xs font-serif font-bold text-[#F5D478]">
                     {currency}{sub.amount.toLocaleString()}
                   </div>
-                  <div className="text-[9px] text-zinc-500">{sub.billingCycle}</div>
+                  <div className="text-[9px] font-mono text-zinc-500 uppercase">{sub.billingCycle}</div>
                 </div>
 
                 <button
@@ -221,8 +227,8 @@ export const VaultTab: React.FC<VaultTabProps> = ({
                     if (soundEnabled) soundFx.deleteDrop();
                     triggerHaptic('heavy');
                   }}
-                  className="p-1.5 rounded-lg text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition"
-                  title="Remove from Vault"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition"
+                  title="Supprimer du coffre"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -234,78 +240,95 @@ export const VaultTab: React.FC<VaultTabProps> = ({
 
       {/* Add Subscription Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-[#030a05] border border-amber-500/30 p-5 shadow-2xl space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-cinzel text-xs font-bold text-amber-300 uppercase">
-                Add Vault Subscription
-              </span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-2xl horology-bezel p-5 shadow-[0_20px_60px_rgba(0,0,0,0.9)] space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/20">
+              <h3 className="font-serif text-sm font-bold text-[#FFF3C4] uppercase tracking-wider">
+                Nouvel Engagement Récurrent
+              </h3>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-zinc-500 hover:text-zinc-200"
+                className="p-1 rounded-lg text-zinc-400 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div>
-              <label className="block text-[11px] font-mono text-zinc-400 mb-1">Service Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Netflix, iCloud, Spotify, Gym"
-                className="w-full bg-black/70 border border-zinc-800 rounded-xl py-2 px-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-mono text-zinc-400 mb-1">
-                Recurring Amount ({currency})
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-                className="w-full bg-black/70 border border-zinc-800 rounded-xl py-2 px-3 text-xs text-zinc-100 font-mono focus:outline-none focus:border-amber-400"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-3">
               <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">Billing Cycle</label>
-                <select
-                  value={billingCycle}
-                  onChange={(e) => setBillingCycle(e.target.value as BillingCycle)}
-                  className="w-full bg-black/70 border border-zinc-800 rounded-xl py-2 px-2 text-xs text-zinc-200 font-mono focus:outline-none focus:border-amber-400"
-                >
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="yearly">Yearly</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">Next Due Date</label>
+                <label className="block text-[11px] font-serif uppercase tracking-wider text-[#E5C378] mb-1">
+                  Nom du Service
+                </label>
                 <input
-                  type="date"
-                  value={nextDueDate}
-                  onChange={(e) => setNextDueDate(e.target.value)}
-                  className="w-full bg-black/70 border border-zinc-800 rounded-xl py-2 px-2 text-xs text-zinc-200 font-mono focus:outline-none focus:border-amber-400"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="ex: Patek Philippe Assurance, Bloomberg Terminal..."
+                  className="w-full bg-black/60 border border-[#D4AF37]/30 rounded-xl p-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37]"
                 />
               </div>
+
+              <div>
+                <label className="block text-[11px] font-serif uppercase tracking-wider text-[#E5C378] mb-1">
+                  Montant ({currency})
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full bg-black/60 border border-[#D4AF37]/30 rounded-xl p-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37] font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-serif uppercase tracking-wider text-[#E5C378] mb-1">
+                    Périodicité
+                  </label>
+                  <select
+                    value={billingCycle}
+                    onChange={(e) => setBillingCycle(e.target.value as BillingCycle)}
+                    className="w-full bg-[#0D120E] border border-[#D4AF37]/30 text-xs rounded-xl p-2.5 text-white focus:outline-none focus:border-[#D4AF37] font-serif"
+                  >
+                    <option value="weekly">Hebdomadaire</option>
+                    <option value="monthly">Mensuel</option>
+                    <option value="quarterly">Trimestriel</option>
+                    <option value="yearly">Annuel</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-serif uppercase tracking-wider text-[#E5C378] mb-1">
+                    Échéance
+                  </label>
+                  <input
+                    type="date"
+                    value={nextDueDate}
+                    onChange={(e) => setNextDueDate(e.target.value)}
+                    className="w-full bg-black/60 border border-[#D4AF37]/30 rounded-xl p-2 text-xs text-white focus:outline-none focus:border-[#D4AF37] font-mono"
+                  />
+                </div>
+              </div>
             </div>
 
-            <button
-              onClick={handleSaveSubscription}
-              disabled={!name.trim() || !amount}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold text-xs font-mono disabled:opacity-40 transition"
-            >
-              Lock into Vault
-            </button>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="flex-1 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-zinc-300 font-serif"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveSubscription}
+                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs shadow-md shadow-[#D4AF37]/30"
+              >
+                Consigner
+              </button>
+            </div>
           </div>
         </div>
       )}

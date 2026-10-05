@@ -94,6 +94,55 @@ export const soundFx = {
     } catch {}
   },
 
+  /** Apple Watch Digital Crown mechanical ratchet tick */
+  crownTick: () => {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1400, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.018);
+      
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.018);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.02);
+    } catch {}
+  },
+
+  /** Apple Watch Activity Ring Completion Chime */
+  ringClose: () => {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const freqs = [659.25, 830.61, 987.77, 1318.5]; // E5, G#5, B5, E6
+      freqs.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const startTime = ctx.currentTime + idx * 0.06;
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        
+        gain.gain.setValueAtTime(0.07, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.35);
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start(startTime);
+        osc.stop(startTime + 0.36);
+      });
+    } catch {}
+  },
+
   /** Deletion / Warning tone */
   deleteDrop: () => {
     try {

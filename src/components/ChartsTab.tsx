@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Transaction } from '../types';
-import { Activity, Flame, TrendingUp } from 'lucide-react';
+import { Compass, TrendingUp, Sparkles } from 'lucide-react';
 
 interface ChartsTabProps {
   transactions: Transaction[];
@@ -34,14 +34,14 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
     }));
 
   const ringColors = [
-    '#10B981', // Laurel Emerald
-    '#D4AF37', // Imperial Gold
-    '#F59E0B', // Amber
-    '#A855F7', // Purple Amethyst
-    '#F43F5E', // Solar Coral
+    '#D4AF37', // 18k Champagne Gold
+    '#34D399', // Malachite Emerald
+    '#F59E0B', // Warm Amber
+    '#38BDF8', // Cyan Rhodium
+    '#F43F5E', // Ruby Rose
   ];
 
-  // 1. Draw Apple Activity-style Concentric Neon Rings
+  // 1. Draw Haute Horlogerie Concentric Astrolabe Rings
   useEffect(() => {
     const canvas = ringsCanvasRef.current;
     if (!canvas) return;
@@ -59,10 +59,19 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
     const centerY = size / 2;
     ctx.clearRect(0, 0, size, size);
 
+    // Draw background concentric engine-turned rings
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.08)';
+    ctx.lineWidth = 1;
+    for (let r = 25; r <= 80; r += 15) {
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
     const maxRings = Math.min(5, sortedCategories.length);
-    const strokeWidth = 10;
-    const spacing = 15;
-    const baseRadius = (size / 2) - 18;
+    const strokeWidth = 9;
+    const spacing = 13;
+    const baseRadius = (size / 2) - 16;
 
     for (let i = 0; i < maxRings; i++) {
       const radius = baseRadius - (i * spacing);
@@ -74,15 +83,15 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
       const startAngle = -Math.PI / 2;
       const endAngle = startAngle + (fraction * Math.PI * 2);
 
-      // Track (dim background circle)
+      // Track (dim background circle with gold hue)
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
       ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.12)';
       ctx.lineCap = 'round';
       ctx.stroke();
 
-      // Glowing active sweep arc
+      // Active sweep arc with gold/jewel luster
       if (fraction > 0) {
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, startAngle, endAngle);
@@ -90,25 +99,25 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
         ctx.strokeStyle = color;
         ctx.lineCap = 'round';
         ctx.shadowColor = color;
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 10;
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
     }
 
-    // Center icon / percentage
+    // Center jewel pivot
     ctx.fillStyle = '#D4AF37';
-    ctx.font = 'bold 16px Cinzel';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('ICARUS', centerX, centerY - 8);
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+    ctx.fill();
 
-    ctx.fillStyle = '#9CA3AF';
-    ctx.font = '10px monospace';
-    ctx.fillText('RINGS', centerX, centerY + 10);
+    ctx.fillStyle = '#F43F5E';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 2.5, 0, Math.PI * 2);
+    ctx.fill();
   }, [sortedCategories, totalDebit]);
 
-  // 2. Draw Daily Spending Trend Bezier Spline
+  // 2. Draw Spending Trend Bezier Spline on Guilloché Background
   useEffect(() => {
     const canvas = splineCanvasRef.current;
     if (!canvas) return;
@@ -121,78 +130,51 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
     canvas.height = rect.height * dpr;
     ctx.scale(dpr, dpr);
 
-    const width = rect.width;
-    const height = rect.height;
-    ctx.clearRect(0, 0, width, height);
+    const w = rect.width;
+    const h = rect.height;
+    ctx.clearRect(0, 0, w, h);
 
-    // Parse month & year dynamically
-    const parts = currentMonth.split(' ');
-    const year = parseInt(parts[1], 10) || new Date().getFullYear();
-    const monthName = parts[0] || 'January';
-    const monthDate = new Date(`${monthName} 1, ${year}`);
-    const monthIndex = isNaN(monthDate.getTime()) ? new Date().getMonth() : monthDate.getMonth();
-    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    // Subtle guilloché grid lines
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.08)';
+    ctx.lineWidth = 1;
+    const gridY = [h * 0.25, h * 0.5, h * 0.75];
+    gridY.forEach((y) => {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    });
 
-    const isCurrentCalendarMonth = 
-      new Date().getMonth() === monthIndex && new Date().getFullYear() === year;
-    const maxDayToPlot = isCurrentCalendarMonth ? Math.max(1, new Date().getDate()) : daysInMonth;
+    const monthParts = (currentMonth || '').split(' ');
+    const monthIndex = new Date(`${monthParts[0]} 1, ${monthParts[1] || 2026}`).getMonth();
+    const yearNumber = parseInt(monthParts[1], 10) || new Date().getFullYear();
+    const daysInMonth = isNaN(monthIndex) ? 31 : new Date(yearNumber, monthIndex + 1, 0).getDate();
 
-    // Aggregate spend by day for current month
-    const dailyMap: Record<number, number> = {};
-    for (let day = 1; day <= maxDayToPlot; day++) dailyMap[day] = 0;
-
+    const dailySpending = new Array(daysInMonth).fill(0);
     debitTransactions.forEach((t) => {
-      try {
-        const [y, m, d] = t.date.split('-');
-        if (parseInt(y, 10) === year && parseInt(m, 10) === monthIndex + 1) {
-          const day = parseInt(d, 10);
-          if (day >= 1 && day <= maxDayToPlot) {
-            dailyMap[day] = (dailyMap[day] || 0) + t.amount;
+      const parts = t.date.split('-');
+      if (parts.length === 3) {
+        const txYear = parseInt(parts[0], 10);
+        const txMonth = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        if (!isNaN(monthIndex) && txMonth === monthIndex && txYear === yearNumber) {
+          if (day >= 1 && day <= daysInMonth) {
+            dailySpending[day - 1] += t.amount;
           }
         }
-      } catch {}
-    });
-
-    const days = Object.keys(dailyMap).map(Number).sort((a, b) => a - b);
-    const amounts = days.map((d) => dailyMap[d]);
-    const maxAmount = Math.max(...amounts, 1000);
-
-    const points: { x: number; y: number; day: number; amount: number }[] = days.map((d, idx) => {
-      const x = days.length > 1 ? (idx / (days.length - 1)) * (width - 40) + 20 : width / 2;
-      const y = height - 25 - (amounts[idx] / maxAmount) * (height - 50);
-      return { x, y, day: d, amount: amounts[idx] };
-    });
-
-    // Horizontal baseline
-    ctx.beginPath();
-    ctx.moveTo(10, height - 20);
-    ctx.lineTo(width - 10, height - 20);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Area fill gradient
-    if (points.length > 1) {
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, height - 20);
-      ctx.lineTo(points[0].x, points[0].y);
-
-      for (let i = 0; i < points.length - 1; i++) {
-        const xc = (points[i].x + points[i + 1].x) / 2;
-        const yc = (points[i].y + points[i + 1].y) / 2;
-        ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
       }
-      ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
-      ctx.lineTo(points[points.length - 1].x, height - 20);
-      ctx.closePath();
+    });
 
-      const areaGrad = ctx.createLinearGradient(0, 0, 0, height);
-      areaGrad.addColorStop(0, 'rgba(16, 185, 129, 0.20)');
-      areaGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-      ctx.fillStyle = areaGrad;
-      ctx.fill();
+    const maxAmount = Math.max(...dailySpending, 100);
+    const points = dailySpending.map((amt, idx) => ({
+      x: (idx / (daysInMonth - 1)) * (w - 32) + 16,
+      y: h - 24 - (amt / maxAmount) * (h - 48),
+      amount: amt,
+      day: idx + 1,
+    }));
 
-      // Spline Stroke
+    if (points.length > 1) {
+      // Area gradient
       ctx.beginPath();
       ctx.moveTo(points[0].x, points[0].y);
       for (let i = 0; i < points.length - 1; i++) {
@@ -201,50 +183,70 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
         ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
       }
       ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
-      ctx.strokeStyle = '#10B981';
-      ctx.lineWidth = 2.5;
-      ctx.shadowColor = '#10B981';
+      ctx.lineTo(points[points.length - 1].x, h);
+      ctx.lineTo(points[0].x, h);
+      ctx.closePath();
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, h);
+      gradient.addColorStop(0, 'rgba(212, 175, 55, 0.25)');
+      gradient.addColorStop(0.5, 'rgba(52, 211, 153, 0.12)');
+      gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      // Stroke curve
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 0; i < points.length - 1; i++) {
+        const xc = (points[i].x + points[i + 1].x) / 2;
+        const yc = (points[i].y + points[i + 1].y) / 2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+      }
+      ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = 'rgba(212, 175, 55, 0.6)';
       ctx.shadowBlur = 8;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
       // Peak Dots & Callouts
       points.forEach((p) => {
-        if (p.amount > maxAmount * 0.4) {
-          // Highlight dot
+        if (p.amount > maxAmount * 0.35) {
           ctx.beginPath();
           ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-          ctx.fillStyle = '#D4AF37';
+          ctx.fillStyle = '#F5D478';
           ctx.shadowColor = '#D4AF37';
           ctx.shadowBlur = 8;
           ctx.fill();
           ctx.shadowBlur = 0;
 
-          // Callout label
-          ctx.fillStyle = '#F4F4F5';
+          ctx.fillStyle = '#FFF3C4';
           ctx.font = 'bold 9px monospace';
           ctx.textAlign = 'center';
-          ctx.fillText(`d${p.day}`, p.x, p.y - 8);
+          ctx.fillText(`J${p.day}`, p.x, p.y - 7);
         }
       });
     }
-  }, [debitTransactions]);
+  }, [debitTransactions, currentMonth]);
 
   return (
     <div className="space-y-4">
-      {/* 1. Concentric Category Rings Card */}
-      <div className="rounded-2xl p-4 bg-[#030a05] border border-zinc-800 shadow-md">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5">
-            <Activity className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-xs font-bold text-zinc-100 uppercase tracking-wider">
-              Category Distribution
+      {/* 1. Concentric Category Astrolabe Rings Card */}
+      <div className="rounded-2xl p-4 horology-bezel shadow-xl">
+        <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="ruby-bearing" />
+            <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
+              Sphères des Postes Budgétaires
             </h3>
           </div>
-          <span className="text-[11px] text-zinc-400">Activity Rings</span>
+          <span className="text-[10px] font-serif text-[#D4AF37]/70 uppercase tracking-widest">
+            ASTROLABE FINANCIER
+          </span>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
+        <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
           {/* Canvas Rings */}
           <div className="relative w-44 h-44 shrink-0 flex items-center justify-center">
             <canvas ref={ringsCanvasRef} className="w-44 h-44" />
@@ -258,14 +260,14 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
                 <div key={cat.category} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <span
-                      className="w-2.5 h-2.5 rounded-full shadow-sm"
+                      className="w-2.5 h-2.5 rounded-full"
                       style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
                     />
-                    <span className="text-zinc-200 truncate max-w-[120px]">{cat.category}</span>
+                    <span className="text-zinc-200 font-serif text-xs truncate max-w-[120px]">{cat.category}</span>
                   </div>
                   <div className="flex items-center gap-2 font-mono text-[11px]">
                     <span className="text-zinc-400">{cat.percentage}%</span>
-                    <span className="text-zinc-200 font-bold">
+                    <span className="text-[#F5D478] font-bold">
                       {currency}{cat.amount.toLocaleString()}
                     </span>
                   </div>
@@ -277,47 +279,47 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
       </div>
 
       {/* 2. Daily Spending Trend Bezier Spline */}
-      <div className="rounded-2xl p-4 bg-[#030a05] border border-zinc-800 shadow-md">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5">
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-xs font-bold text-zinc-100 uppercase tracking-wider">
-              Daily Spending Trend
+      <div className="rounded-2xl p-4 horology-bezel shadow-xl">
+        <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="ruby-bearing" />
+            <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
+              Courbe Chronologique des Dépenses
             </h3>
           </div>
-          <span className="text-[11px] text-zinc-400 font-mono">{currentMonth}</span>
+          <span className="text-[11px] font-serif text-[#F5D478] uppercase tracking-wider">{currentMonth}</span>
         </div>
 
-        <p className="text-xs text-zinc-400 mb-2">
-          Daily expenditures curve with high-spend peak callouts.
+        <p className="text-[11px] font-serif text-zinc-400 mb-2">
+          Oscillogramme des sorties journalières avec sommets marqués.
         </p>
 
-        <div className="w-full h-36 relative rounded-xl bg-black/40 border border-zinc-800/80 overflow-hidden">
+        <div className="w-full h-36 relative rounded-xl bg-black/60 border border-[#D4AF37]/20 overflow-hidden">
           <canvas ref={splineCanvasRef} className="w-full h-full" />
         </div>
       </div>
 
       {/* 3. Detailed Category Breakdown List */}
-      <div className="rounded-2xl p-4 bg-[#030905]/90 border border-zinc-800 shadow-xl backdrop-blur-xl space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-cinzel text-xs font-bold text-amber-200 uppercase tracking-wider">
-            All Category Allocations
+      <div className="rounded-2xl p-4 horology-bezel shadow-xl space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15">
+          <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
+            Allocation Totale du Calibre
           </h3>
-          <span className="text-[10px] font-mono text-zinc-500">
-            Total Debit: {currency}{totalDebit.toLocaleString()}
+          <span className="text-[10px] font-mono text-zinc-400">
+            Total Sorties: {currency}{totalDebit.toLocaleString()}
           </span>
         </div>
 
         <div className="space-y-2">
           {sortedCategories.map((cat, idx) => (
-            <div key={cat.category} className="p-2.5 rounded-xl bg-black/40 border border-zinc-800/70">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-zinc-200 font-medium">{cat.category}</span>
-                <span className="font-mono text-amber-300 font-bold">
+            <div key={cat.category} className="p-2.5 rounded-xl bg-gradient-to-b from-[#101512] to-[#070A08] border border-[#D4AF37]/20">
+              <div className="flex items-center justify-between text-xs mb-1.5">
+                <span className="text-zinc-200 font-serif font-medium">{cat.category}</span>
+                <span className="font-serif text-[#F5D478] font-bold">
                   {currency}{cat.amount.toLocaleString()} ({cat.percentage}%)
                 </span>
               </div>
-              <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden">
+              <div className="w-full h-1 bg-black/80 rounded-full overflow-hidden border border-[#D4AF37]/20">
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
