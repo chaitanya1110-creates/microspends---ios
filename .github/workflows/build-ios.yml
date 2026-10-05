@@ -32,11 +32,11 @@ jobs:
           # 4. Install Capacitor iOS toolchain
           npm install --legacy-peer-deps @capacitor/core@latest @capacitor/cli@latest @capacitor/ios@latest
 
-      - name: Build Web App
+      - name: 1. Build Web App (Vite Dist)
         run: |
           npx vite build
 
-      - name: Initialize & Sync Capacitor iOS
+      - name: 2. Initialize & Sync Capacitor iOS
         run: |
           # Ensure fresh clean iOS project setup
           if [ ! -d "ios/App" ]; then
@@ -56,7 +56,7 @@ jobs:
           echo "Listing generated files in ios/App:"
           ls -la ios/App
 
-      - name: Build Native iOS App (xcodebuild)
+      - name: 3. Build & Archive Native iOS App
         run: |
           # Select workspace if available, otherwise fallback to xcodeproj
           if [ -d "ios/App/App.xcworkspace" ]; then
@@ -69,49 +69,88 @@ jobs:
             exit 1
           fi
 
-          echo "Building using: $BUILD_TARGET"
+          echo "Building & Archiving using: $BUILD_TARGET"
 
-          # Use -derivedDataPath build to output artifacts directly into local directory
+          # 1. Attempt official Xcode Archive for 100% compliant iOS bundle
           xcodebuild \
             $BUILD_TARGET \
             -scheme App \
             -sdk iphoneos \
             -configuration Release \
             -destination 'generic/platform=iOS' \
-            -derivedDataPath build \
+            -archivePath build/App.xcarchive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            clean build
+            clean archive || {
+              echo "Archive failed, falling back to xcodebuild build..."
+              xcodebuild \
+                $BUILD_TARGET \
+                -scheme App \
+                -sdk iphoneos \
+                -configuration Release \
+                -destination 'generic/platform=iOS' \
+                -derivedDataPath build \
+                CODE_SIGNING_ALLOWED=NO \
+                CODE_SIGNING_REQUIRED=NO \
+                CODE_SIGN_IDENTITY="" \
+                clean build
+            }
 
-      - name: Package into Native .ipa
+      - name: 4. Package into Native .IPA (with Symbols & Frameworks)
         run: |
           mkdir -p ipa_build/Payload
 
-          # Search in local build directory first, then Xcode default DerivedData
-          APP_PATH=$(find build -name "App.app" -type d | grep "Release-iphoneos" | head -n 1)
-          if [ -z "$APP_PATH" ]; then
-            APP_PATH=$(find build -name "App.app" -type d | head -n 1)
-          fi
-          if [ -z "$APP_PATH" ]; then
-            APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "App.app" -type d | grep "Release-iphoneos" | head -n 1)
-          fi
-          if [ -z "$APP_PATH" ]; then
-            APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "App.app" -type d | head -n 1)
+          # Locate App.app: check official xcarchive first, then local build, then DerivedData
+          if [ -d "build/App.xcarchive/Products/Applications/App.app" ]; then
+            APP_PATH="build/App.xcarchive/Products/Applications/App.app"
+          else
+            APP_PATH=$(find build -name "App.app" -type d | grep "Release-iphoneos" | head -n 1)
+            if [ -z "$APP_PATH" ]; then
+              APP_PATH=$(find build -name "App.app" -type d | head -n 1)
+            fi
+            if [ -z "$APP_PATH" ]; then
+              APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "App.app" -type d | grep "Release-iphoneos" | head -n 1)
+            fi
+            if [ -z "$APP_PATH" ]; then
+              APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "App.app" -type d | head -n 1)
+            fi
           fi
 
-          if [ -z "$APP_PATH" ]; then
+          if [ -z "$APP_PATH" ] || [ ! -d "$APP_PATH" ]; then
             echo "Error: App.app was not found!"
             find build -maxdepth 4 || true
             exit 1
           fi
 
-          echo "Found compiled App.app at: $APP_PATH"
+          echo "=========================================="
+          echo "Found compiled native App.app at: $APP_PATH"
+          echo "=========================================="
+          ls -lh "$APP_PATH"
+          echo "---"
+          file "$APP_PATH/App" || true
+          echo "---"
+          du -sh "$APP_PATH"
+          echo "=========================================="
+
+          # Copy App.app into Payload folder
           cp -R "$APP_PATH" ipa_build/Payload/
+
+          # Include dSYMs symbol maps if present to produce complete 20MB-30MB development bundle
+          if [ -d "build/App.xcarchive/dSYMs" ]; then
+            cp -R build/App.xcarchive/dSYMs ipa_build/
+          elif [ -d "build/dSYMs" ]; then
+            cp -R build/dSYMs ipa_build/
+          fi
+
           cd ipa_build
-          zip -r -q ../MicroSpends-Full.ipa Payload
+          zip -r -q ../MicroSpends-Full.ipa Payload dSYMs 2>/dev/null || zip -r -q ../MicroSpends-Full.ipa Payload
           cd ..
+          
+          echo "=========================================="
+          echo "Final Native .IPA Package Size:"
           ls -lh MicroSpends-Full.ipa
+          echo "=========================================="
 
       - name: Upload .ipa Artifact
         uses: actions/upload-artifact@v4

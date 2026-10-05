@@ -404,6 +404,7 @@ export default function App() {
           onNextMonth={handleNextMonth}
           onOpenGamification={() => setIsGamificationModalOpen(true)}
           onOpenDataBackup={() => setIsDataBackupModalOpen(true)}
+          onOpenIpaGuide={() => setIsIpaModalOpen(true)}
           soundEnabled={soundEnabled}
           onToggleSound={() => setSoundEnabled((prev) => !prev)}
           currency={currency}

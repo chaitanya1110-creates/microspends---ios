@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, Battery, Volume2, VolumeX, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Wifi, Battery, Volume2, VolumeX, ShieldCheck, ChevronLeft, ChevronRight, Smartphone } from 'lucide-react';
 import { soundFx } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 
@@ -9,6 +9,7 @@ interface IosStatusBarProps {
   onNextMonth: () => void;
   onOpenGamification: () => void;
   onOpenDataBackup: () => void;
+  onOpenIpaGuide?: () => void;
   soundEnabled: boolean;
   onToggleSound: () => void;
   currency: string;
@@ -21,6 +22,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
   onNextMonth,
   onOpenGamification,
   onOpenDataBackup,
+  onOpenIpaGuide,
   soundEnabled,
   onToggleSound,
   currency,
@@ -117,6 +119,23 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
           >
             <ShieldCheck className="w-4 h-4" />
           </button>
+
+          {/* iOS IPA Sideload & Build Guide */}
+          {onOpenIpaGuide && (
+            <button
+              id="ipa-guide-btn"
+              onClick={() => {
+                if (soundEnabled) soundFx.tap();
+                triggerHaptic('light');
+                onOpenIpaGuide();
+              }}
+              className="w-8 h-8 rounded-xl bg-zinc-900/90 border border-zinc-800 text-zinc-400 hover:text-amber-400 hover:border-amber-500/40 transition flex items-center justify-center active:scale-95"
+              title="iOS IPA Build & Sideload Guide"
+              aria-label="iOS IPA Build & Sideload Guide"
+            >
+              <Smartphone className="w-4 h-4 text-amber-400" />
+            </button>
+          )}
         </div>
       </div>
 
