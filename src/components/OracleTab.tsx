@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Compass, ShieldAlert, CheckCircle2, ArrowRight, RefreshCw, Send } from 'lucide-react';
 import { AdvisorInsight, Transaction, Subscription } from '../types';
+import { getApiUrl } from '../utils/api';
 import { soundFx } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 
@@ -89,7 +90,7 @@ export const OracleTab: React.FC<OracleTabProps> = ({
 
     ctx.fillStyle = '#D4AF37';
     ctx.font = 'bold 11px Cormorant Garamond, serif';
-    ctx.fillText(`RANG ${insight.grade} · SOLVABILITÉ`, centerX, centerY + 18);
+    ctx.fillText(`GRADE ${insight.grade} · EQUILIBRIUM`, centerX, centerY + 18);
   }, [insight.score, insight.grade]);
 
   // 2. Draw Spending Leakages Radar Pentagon on Engine-Turned Spiderweb
@@ -114,11 +115,11 @@ export const OracleTab: React.FC<OracleTabProps> = ({
     const maxRadius = Math.min(width, height) * 0.38;
 
     const axes = [
-      { name: 'Discrétion', key: 'dining' },
-      { name: 'Abonnements', key: 'subscriptions' },
-      { name: 'Impulsion', key: 'shopping' },
-      { name: 'Services', key: 'utilities' },
-      { name: 'Transports', key: 'transport' },
+      { name: 'Dining', key: 'dining' },
+      { name: 'Vault', key: 'subscriptions' },
+      { name: 'Discretionary', key: 'shopping' },
+      { name: 'Utilities', key: 'utilities' },
+      { name: 'Transport', key: 'transport' },
     ];
 
     const numAxes = axes.length;
@@ -213,7 +214,7 @@ export const OracleTab: React.FC<OracleTabProps> = ({
         })),
       };
 
-      const res = await fetch('/api/gemini/advisor', {
+      const res = await fetch(getApiUrl('/api/gemini/advisor'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userQuery: textToQuery, financialContext }),
@@ -253,7 +254,7 @@ export const OracleTab: React.FC<OracleTabProps> = ({
           <div className="flex items-center gap-2">
             <span className="ruby-bearing" />
             <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
-              L'Oracle de Delphes · Conseil Privé & Audit
+              Delphic Oracle · AI Financial Intelligence
             </h3>
           </div>
           <span className="text-[10px] font-mono text-[#D4AF37]/70">
@@ -265,26 +266,26 @@ export const OracleTab: React.FC<OracleTabProps> = ({
           {/* Gauge */}
           <div className="flex flex-col items-center">
             <span className="text-[10px] font-serif uppercase tracking-widest text-[#E5C378] mb-1">
-              Indice d'Équilibre Patrimonial
+              Financial Health Index
             </span>
             <div className="w-44 h-36">
               <canvas ref={gaugeCanvasRef} className="w-full h-full" />
             </div>
             <span className="text-[11px] font-serif text-[#F5D478]">
-              Trésorerie de Rang Supérieur
+              Active Solvency Rating
             </span>
           </div>
 
           {/* Radar Pentagon */}
           <div className="flex flex-col items-center">
             <span className="text-[10px] font-serif uppercase tracking-widest text-[#E5C378] mb-1">
-              Radar 5-Axes des Déperditions
+              5-Axis Spending Radar
             </span>
             <div className="w-48 h-36">
               <canvas ref={radarCanvasRef} className="w-full h-full" />
             </div>
             <span className="text-[10px] font-serif text-zinc-400">
-              Discrétionnaire · Abonnements · Loisirs
+              Dining · Vault · Discretionary · Utilities
             </span>
           </div>
         </div>
@@ -305,7 +306,7 @@ export const OracleTab: React.FC<OracleTabProps> = ({
         <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15 mb-2.5">
           <div className="flex items-center gap-1.5 text-xs text-[#E5C378] font-serif font-bold uppercase tracking-wider">
             <Compass className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span>Consultation Privée du Trésorier IA</span>
+            <span>Consult AI Financial Advisor</span>
           </div>
         </div>
 
@@ -320,14 +321,14 @@ export const OracleTab: React.FC<OracleTabProps> = ({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="ex: 'Comment optimiser mon run-rate ce trimestre ?'"
+            placeholder="e.g. 'How can I optimize discretionary spending this month?'"
             className="w-full bg-[#030604]/90 border border-[#D4AF37]/30 rounded-xl py-2.5 pl-3.5 pr-20 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37] font-sans"
             disabled={isLoading}
           />
           <button
             type="submit"
             disabled={!query.trim() || isLoading}
-            className="absolute right-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs transition disabled:opacity-40 flex items-center gap-1 shadow-md shadow-[#D4AF37]/20"
+            className="absolute right-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs transition disabled:opacity-40 flex items-center gap-1 shadow-md shadow-[#D4AF37]/20 cursor-pointer"
           >
             {isLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           </button>
@@ -340,18 +341,18 @@ export const OracleTab: React.FC<OracleTabProps> = ({
         {/* Quick Advisor Directives */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-[10px] font-serif uppercase tracking-wider text-zinc-500">
-            Requêtes Rapides:
+            Quick Queries:
           </span>
           {[
-            'Audit des micro-fuites',
-            'Capacité de trésorerie',
-            'Prévision fin de mois',
+            'Audit spending leaks',
+            'Vault runway check',
+            'End of month forecast',
           ].map((prompt) => (
             <button
               key={prompt}
               type="button"
               onClick={() => handleAskAdvisor(prompt)}
-              className="text-[10px] font-serif px-2.5 py-1 rounded-lg knurled-crown text-zinc-300 hover:text-[#F5D478] transition active:scale-95"
+              className="text-[10px] font-serif px-2.5 py-1 rounded-lg knurled-crown text-zinc-300 hover:text-[#F5D478] transition active:scale-95 cursor-pointer"
             >
               {prompt}
             </button>
@@ -364,10 +365,10 @@ export const OracleTab: React.FC<OracleTabProps> = ({
         <div className="rounded-2xl p-4 horology-bezel shadow-xl space-y-2.5">
           <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15">
             <h4 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
-              Directives d'Action Immédiates
+              Immediate Action Directives
             </h4>
             <span className="text-[10px] font-mono text-[#D4AF37]/70">
-              {insight.actionItems.length} impératifs
+              {insight.actionItems.length} recommendations
             </span>
           </div>
 

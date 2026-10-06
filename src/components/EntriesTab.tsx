@@ -26,6 +26,7 @@ import {
   ClipboardCheck
 } from 'lucide-react';
 import { Transaction, ExpenseCategory } from '../types';
+import { getApiUrl } from '../utils/api';
 import { soundFx } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 import { isDateInMonth } from '../utils/storage';
@@ -43,6 +44,52 @@ interface EntriesTabProps {
   onScanClipboardNow?: () => void;
   isScanningClipboard?: boolean;
   onOpenShortcutsGuide?: () => void;
+}
+
+// Client-side instant parser fallback
+function parseExpenseLocallyClient(text: string) {
+  const clean = text.trim();
+  const amountMatch = clean.match(/(?:[$€₹£])?\s*([0-9]+(?:[.,][0-9]{1,2})?)/);
+  const amount = amountMatch ? parseFloat(amountMatch[1].replace(',', '.')) : 0;
+
+  const isCredit = /salary|received|deposit|credited|income|refund|\+/i.test(clean);
+  let category: ExpenseCategory = 'Other';
+
+  if (/coffee|starbucks|food|lunch|dinner|pizza|burger|cafe|mcdonald|chipotle|dining|restaurant/i.test(clean)) {
+    category = 'Food & Dining';
+  } else if (/grocery|supermarket|walmart|trader|whole foods|costco|market|veggies/i.test(clean)) {
+    category = 'Groceries';
+  } else if (/uber|lyft|cab|taxi|gas|fuel|metro|subway|flight|train|bus/i.test(clean)) {
+    category = 'Transportation';
+  } else if (/netflix|spotify|youtube|disney|movie|hulu|prime|cinema|game/i.test(clean)) {
+    category = 'Entertainment';
+  } else if (/amazon|apple|clothes|shoes|shopping|zara|mall|store/i.test(clean)) {
+    category = 'Shopping & Treasury';
+  } else if (/gym|pharmacy|doctor|medicine|health|workout|dentist/i.test(clean)) {
+    category = 'Health & Wellness';
+  } else if (/rent|wifi|internet|electric|water|bill|recharge|power/i.test(clean)) {
+    category = 'Bills & Utilities';
+  } else if (isCredit) {
+    category = 'Income & Salary';
+  }
+
+  // Extract clean title
+  let title = clean
+    .replace(/(?:[$€₹£])?\s*[0-9]+(?:[.,][0-9]{1,2})?/g, '')
+    .replace(/\b(at|on|for|paid|spent|debited|credited|via|to|from)\b/gi, '')
+    .trim();
+  if (!title) title = clean.slice(0, 20);
+
+  return {
+    title: title.slice(0, 32) || 'Quick Expense',
+    amount: amount > 0 ? amount : 100,
+    type: isCredit ? ('credit' as const) : ('debit' as const),
+    category,
+    merchant: title.slice(0, 32) || 'Merchant',
+    note: clean,
+    paymentMethod: 'Apple Pay',
+    date: new Date().toISOString().split('T')[0],
+  };
 }
 
 export const EntriesTab: React.FC<EntriesTabProps> = ({
@@ -67,7 +114,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
   // Search & filter
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('All');
-  const [onlyCurrentMonth, setOnlyCurrentMonth] = useState<boolean>(false);
+  const [onlyCurrentMonth, setOnlyCurrentMonth] = useState<boolean>(true);
 
   // Confirmation modal for surgical deletion
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -90,6 +137,8 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
   const [manualAmount, setManualAmount] = useState('');
   const [manualType, setManualType] = useState<'debit' | 'credit'>('debit');
   const [manualCategory, setManualCategory] = useState<ExpenseCategory>('Food & Dining');
+  const [manualDate, setManualDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [manualPaymentMethod, setManualPaymentMethod] = useState('Apple Pay');
 
   // Quick categories
   const categories: { name: ExpenseCategory; icon: React.FC<{ className?: string }> }[] = [
@@ -99,29 +148,46 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
     { name: 'Shopping & Treasury', icon: Tag },
     { name: 'Health & Wellness', icon: Heart },
     { name: 'Bills & Utilities', icon: FileText },
+    { name: 'Entertainment', icon: Radio },
     { name: 'Income & Salary', icon: Briefcase },
+    { name: 'Other', icon: Tag },
   ];
 
-  // Natural language submit handler (calls Gemini API)
+  // Natural language submit handler (calls Gemini API with immediate robust fallback)
   const handleNaturalSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!inputText.trim() || isParsing) return;
+    const text = inputText.trim();
+    if (!text || isParsing) return;
 
     setIsParsing(true);
     setParseError(null);
 
     try {
-      const res = await fetch('/api/gemini/parse-expense', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: inputText }),
-      });
-      const data = await res.json();
+      let parsedTx: any = null;
+      try {
+        const res = await fetch(getApiUrl('/api/gemini/parse-expense'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.transaction) {
+            parsedTx = data.transaction;
+          }
+        }
+      } catch {
+        // network or server fallback
+      }
 
-      if (data.transaction) {
-        onAddTransaction(data.transaction);
+      if (!parsedTx) {
+        parsedTx = parseExpenseLocallyClient(text);
+      }
+
+      if (parsedTx) {
+        onAddTransaction(parsedTx);
         if (soundEnabled) {
-          if (data.transaction.type === 'credit') {
+          if (parsedTx.type === 'credit') {
             soundFx.goldChime();
           } else {
             soundFx.debitChirp();
@@ -134,8 +200,12 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
       }
     } catch (err: any) {
       console.error(err);
-      setParseError('Failed to parse financial entry. Try formatting like "Coffee 150 at Starbucks"');
-      if (soundEnabled) soundFx.deleteDrop();
+      // Even on outer error, apply local fallback
+      const fallback = parseExpenseLocallyClient(text);
+      onAddTransaction(fallback);
+      if (soundEnabled) soundFx.debitChirp();
+      triggerHaptic('success');
+      setInputText('');
     } finally {
       setIsParsing(false);
     }
@@ -147,17 +217,27 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
     setIsParsingSms(true);
 
     try {
-      const res = await fetch('/api/gemini/parse-sms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rawSms: rawSmsText }),
-      });
-      const data = await res.json();
+      let parsedTx: any = null;
+      try {
+        const res = await fetch(getApiUrl('/api/gemini/parse-sms'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rawSms: rawSmsText }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.transaction) parsedTx = data.transaction;
+        }
+      } catch {}
 
-      if (data.transaction) {
-        onAddTransaction(data.transaction);
+      if (!parsedTx) {
+        parsedTx = parseExpenseLocallyClient(rawSmsText);
+      }
+
+      if (parsedTx) {
+        onAddTransaction(parsedTx);
         if (soundEnabled) {
-          if (data.transaction.type === 'credit') soundFx.goldChime();
+          if (parsedTx.type === 'credit') soundFx.goldChime();
           else soundFx.debitChirp();
         }
         triggerHaptic('success');
@@ -166,6 +246,9 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
       }
     } catch (err) {
       console.error(err);
+      const fallback = parseExpenseLocallyClient(rawSmsText);
+      onAddTransaction(fallback);
+      setIsSmsModalOpen(false);
     } finally {
       setIsParsingSms(false);
     }
@@ -223,7 +306,6 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
     setIsListening(true);
     setVoiceTranscript('');
 
-    // Check Web Speech API support
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       try {
@@ -248,7 +330,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
         recognition.start();
       } catch (err) {
-        console.warn('Speech recognition not available or denied:', err);
+        console.warn('Speech recognition not available:', err);
         simulateVoiceInput();
       }
     } else {
@@ -257,18 +339,16 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
   };
 
   const simulateVoiceInput = () => {
-    // Simulated voice transcription if speech recognition is unavailable
     setTimeout(() => {
-      setVoiceTranscript('Coffee 180 at Blue Bottle');
+      setVoiceTranscript('Coffee 180 at Starbucks');
       setIsListening(false);
-    }, 2200);
+    }, 2000);
   };
 
   const handleApplyVoiceTranscript = () => {
     if (voiceTranscript.trim()) {
       setInputText(voiceTranscript);
       setIsVoiceModalOpen(false);
-      // Auto-trigger parse
       setTimeout(() => {
         handleNaturalSubmit();
       }, 200);
@@ -290,13 +370,13 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* 1. Natural Language AI Input Bar */}
+      {/* 1. Natural Language AI Input Bar & Quick Actions */}
       <div className="rounded-2xl p-4 horology-bezel shadow-[0_12px_36px_rgba(0,0,0,0.85)]">
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
             <span className="ruby-bearing" />
             <span className="text-xs font-serif font-bold tracking-wider gold-leaf-text uppercase">
-              Atelier Chrono Ledger · Gemini AI
+              Micro-Spends Ledger · Quick Entry
             </span>
           </div>
 
@@ -312,7 +392,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               title="Parse Bank SMS Alert"
             >
               <MessageSquare className="w-3 h-3 text-[#D4AF37]" />
-              <span className="font-serif text-[11px] uppercase tracking-wider">SMS</span>
+              <span className="font-serif text-[11px] uppercase tracking-wider">SMS Alert</span>
             </button>
 
             {/* Manual Form Button */}
@@ -320,13 +400,14 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               onClick={() => {
                 if (soundEnabled) soundFx.tap();
                 triggerHaptic('light');
+                setManualDate(new Date().toISOString().split('T')[0]);
                 setIsManualModalOpen(true);
               }}
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg knurled-crown text-xs text-[#F5D478] hover:border-[#D4AF37] transition"
-              title="Manual Form"
+              title="Manual Transaction Form"
             >
               <Plus className="w-3 h-3 text-[#F5D478]" />
-              <span className="font-serif text-[11px] uppercase tracking-wider">Manuel</span>
+              <span className="font-serif text-[11px] uppercase tracking-wider">+ Add Entry</span>
             </button>
           </div>
         </div>
@@ -337,7 +418,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="e.g., 'Audemars service 350' or 'Consulting retainer 4500 credited'"
+            placeholder="e.g. 'Coffee 250 Starbucks' or 'Salary 85000 credited'..."
             className="w-full bg-[#030604]/90 border border-[#D4AF37]/25 rounded-xl py-2.5 pl-3.5 pr-20 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37]/80 transition backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] font-sans"
             disabled={isParsing}
           />
@@ -352,7 +433,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 handleStartVoice();
               }}
               className="p-1.5 rounded-lg bg-[#0F1411] border border-[#D4AF37]/30 hover:bg-[#1A211D] text-[#F5D478] transition shadow-sm"
-              title="Voice Input Complication"
+              title="Voice Speech Input"
             >
               <Mic className="w-3.5 h-3.5" />
             </button>
@@ -361,7 +442,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             <button
               type="submit"
               disabled={!inputText.trim() || isParsing}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] hover:brightness-110 text-black font-serif font-bold text-xs transition disabled:opacity-40 flex items-center gap-1 shadow-md shadow-[#D4AF37]/20"
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] hover:brightness-110 text-black font-serif font-bold text-xs transition disabled:opacity-40 flex items-center gap-1 shadow-md shadow-[#D4AF37]/20 cursor-pointer"
             >
               {isParsing ? (
                 <span className="animate-spin text-xs">↻</span>
@@ -397,7 +478,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 if (soundEnabled) soundFx.tap();
                 triggerHaptic('light');
               }}
-              className="whitespace-nowrap px-2 py-0.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-amber-200 transition"
+              className="whitespace-nowrap px-2 py-0.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-amber-200 transition cursor-pointer"
             >
               {sample}
             </button>
@@ -419,14 +500,14 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-semibold text-zinc-100">
-                  {isAutoSyncActive ? 'Message Auto-Reader Active' : 'Message Auto-Reader Paused'}
+                  {isAutoSyncActive ? 'Bank SMS Auto-Reader Active' : 'Bank SMS Auto-Reader Paused'}
                 </span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono">
                   Live Sync
                 </span>
               </div>
               <p className="text-[11px] text-zinc-400">
-                Goes through banking SMS automatically without manual copy-pasting
+                Automatically ingests debit/credit alerts from bank messages
               </p>
             </div>
           </div>
@@ -437,7 +518,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 triggerHaptic('light');
                 onToggleAutoSync();
               }}
-              className={`px-3 py-1 rounded-xl text-xs font-semibold transition active:scale-95 ${
+              className={`px-3 py-1 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer ${
                 isAutoSyncActive
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
                   : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
@@ -454,7 +535,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
           <button
             type="button"
             onClick={onTriggerSimulatedSms}
-            className="flex flex-col items-center justify-center p-2 rounded-xl liquid-glass-pill hover:border-amber-400/30 text-center group transition active:scale-95"
+            className="flex flex-col items-center justify-center p-2 rounded-xl liquid-glass-pill hover:border-amber-400/30 text-center group transition active:scale-95 cursor-pointer"
             title="Inject a real incoming bank alert to test automatic ingestion"
           >
             <Sparkles className="w-3.5 h-3.5 text-emerald-400 mb-1 group-hover:scale-110 transition-transform" />
@@ -467,7 +548,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             type="button"
             onClick={onScanClipboardNow}
             disabled={isScanningClipboard}
-            className="flex flex-col items-center justify-center p-2 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-center group transition disabled:opacity-50"
+            className="flex flex-col items-center justify-center p-2 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-center group transition disabled:opacity-50 cursor-pointer"
             title="Auto-read copied bank SMS from clipboard"
           >
             {isScanningClipboard ? (
@@ -483,7 +564,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
           <button
             type="button"
             onClick={onOpenShortcutsGuide}
-            className="flex flex-col items-center justify-center p-2 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-center group transition"
+            className="flex flex-col items-center justify-center p-2 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-center group transition cursor-pointer"
             title="Configure iPhone Shortcuts to automatically push SMS"
           >
             <Smartphone className="w-3.5 h-3.5 text-cyan-400 mb-1 group-hover:scale-110 transition-transform" />
@@ -501,7 +582,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search merchant, tag..."
+            placeholder="Search merchant, notes..."
             className="w-full bg-[#040b06]/80 border border-zinc-800 rounded-xl py-2 pl-8 pr-3 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-amber-500/40"
           />
         </div>
@@ -527,14 +608,14 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               triggerHaptic('light');
               setOnlyCurrentMonth((prev) => !prev);
             }}
-            className={`px-2.5 py-2 rounded-xl text-[11px] font-mono transition border shrink-0 ${
+            className={`px-2.5 py-2 rounded-xl text-[11px] font-mono transition border shrink-0 cursor-pointer ${
               onlyCurrentMonth
                 ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
                 : 'bg-[#040b06]/80 text-zinc-400 border-zinc-800 hover:text-zinc-200'
             }`}
             title="Toggle between filtering by selected month or all records"
           >
-            {onlyCurrentMonth ? currentMonth : 'All Months'}
+            {onlyCurrentMonth ? currentMonth : 'All Records'}
           </button>
         )}
       </div>
@@ -545,19 +626,30 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
           <div className="flex items-center gap-1.5">
             <span className="ruby-bearing" />
             <span className="font-serif font-bold text-[#E5C378] uppercase tracking-wider text-xs">
-              Livre des Écritures · Master Ledger
+              Transaction Ledger
             </span>
           </div>
           <span className="text-[11px] font-mono text-[#D4AF37]/70">
-            {filteredTransactions.length} {filteredTransactions.length === 1 ? 'acte' : 'actes'}
+            {filteredTransactions.length} {filteredTransactions.length === 1 ? 'transaction' : 'transactions'}
           </span>
         </div>
 
         {filteredTransactions.length === 0 ? (
           <div className="text-center py-10 px-4 rounded-xl border border-dashed border-[#D4AF37]/20 bg-[#060907]/60">
             <Tag className="w-8 h-8 text-[#D4AF37]/40 mx-auto mb-2" />
-            <p className="text-xs font-serif text-zinc-300">Aucune écriture enregistrée pour cette sélection.</p>
-            <p className="text-[11px] font-mono text-zinc-500 mt-1">Utilisez l'Atelier IA ci-dessus pour consigner un acte.</p>
+            <p className="text-xs font-serif text-zinc-300">
+              No transactions recorded for {onlyCurrentMonth && currentMonth ? currentMonth : 'this view'}.
+            </p>
+            <p className="text-[11px] font-mono text-zinc-500 mt-1">
+              Use the quick input above or click '+ Add Entry' to record your first transaction.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsManualModalOpen(true)}
+              className="mt-3 px-3 py-1.5 rounded-xl bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 border border-[#D4AF37]/40 text-[#F5D478] text-xs font-serif font-semibold transition"
+            >
+              + Add Transaction Now
+            </button>
           </div>
         ) : (
           filteredTransactions.map((tx) => {
@@ -599,11 +691,17 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                       <span>{tx.date}</span>
                       <span className="text-[#D4AF37]/50">·</span>
                       <span className="truncate">{tx.merchant}</span>
+                      {tx.note && tx.note !== tx.title && (
+                        <>
+                          <span className="text-[#D4AF37]/50">·</span>
+                          <span className="truncate text-zinc-500 italic">{tx.note}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Right: Amount & Surgical Delete */}
+                {/* Right: Amount & Delete */}
                 <div className="flex items-center gap-2.5 shrink-0">
                   <div className="text-right">
                     <div
@@ -621,7 +719,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                     <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-tighter">{tx.paymentMethod}</div>
                   </div>
 
-                  {/* Surgical Delete Button */}
+                  {/* Delete Confirmation */}
                   {isConfirmingDelete ? (
                     <div className="flex items-center gap-1 bg-rose-950/90 border border-rose-500/50 p-1 rounded-lg shadow-lg">
                       <button
@@ -631,15 +729,15 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                           if (soundEnabled) soundFx.deleteDrop();
                           triggerHaptic('heavy');
                         }}
-                        className="p-1 rounded bg-rose-600 text-white hover:bg-rose-500 transition"
-                        title="Confirmer la suppression"
+                        className="p-1 rounded bg-rose-600 text-white hover:bg-rose-500 transition cursor-pointer"
+                        title="Confirm Delete"
                       >
                         <Check className="w-3 h-3" />
                       </button>
                       <button
                         onClick={() => setDeleteConfirmId(null)}
-                        className="p-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition"
-                        title="Annuler"
+                        className="p-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition cursor-pointer"
+                        title="Cancel"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -651,8 +749,8 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                         triggerHaptic('light');
                         setDeleteConfirmId(tx.id);
                       }}
-                      className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition active:scale-90"
-                      title="Supprimer l'acte"
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition active:scale-90 cursor-pointer"
+                      title="Delete Transaction"
                       aria-label="Delete Transaction"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -673,7 +771,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <div className="flex items-center gap-2">
                 <Mic className="w-4 h-4 text-cyan-400" />
                 <span className="font-cinzel text-xs font-bold text-cyan-300 uppercase">
-                  Voice Speech-To-Text
+                  Voice Speech Input
                 </span>
               </div>
               <button
@@ -696,7 +794,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
             <div className="text-center">
               <p className="text-xs text-zinc-400 font-mono">
-                {isListening ? 'Listening for financial phrase...' : 'Audio recorded.'}
+                {isListening ? 'Listening for transaction phrase...' : 'Audio captured.'}
               </p>
               <div className="mt-2 p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 min-h-[44px] text-xs text-amber-200 font-mono">
                 {voiceTranscript || 'Say: "Starbucks coffee 220" or "Salary 80000"'}
@@ -712,7 +810,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                     handleStartVoice();
                   }
                 }}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold font-mono transition ${
+                className={`flex-1 py-2 rounded-xl text-xs font-bold font-mono transition cursor-pointer ${
                   isListening
                     ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
                     : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
@@ -724,9 +822,9 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <button
                 onClick={handleApplyVoiceTranscript}
                 disabled={!voiceTranscript.trim()}
-                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold font-mono disabled:opacity-40"
+                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold font-mono disabled:opacity-40 cursor-pointer"
               >
-                Apply to Ledger
+                Save to Ledger
               </button>
             </div>
           </div>
@@ -762,7 +860,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-[11px] font-mono text-zinc-400">
-                  Bank SMS / Alert:
+                  Bank SMS / Notification:
                 </label>
                 <button
                   type="button"
@@ -775,11 +873,9 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                           triggerHaptic('light');
                         }
                       }
-                    } catch (e) {
-                      // ignore
-                    }
+                    } catch (e) {}
                   }}
-                  className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1"
+                  className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 cursor-pointer"
                 >
                   <ClipboardCheck className="w-3 h-3" />
                   <span>Paste from Clipboard</span>
@@ -789,7 +885,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 rows={4}
                 value={rawSmsText}
                 onChange={(e) => setRawSmsText(e.target.value)}
-                placeholder="e.g. 'A/C *1234 debited by INR 350.00 at MCDONALDS on 16-MAR-26 via UPI. Bal INR 45,210. OTP 4920.'"
+                placeholder="e.g. 'A/C *1234 debited by INR 350.00 at MCDONALDS on 16-MAR-26 via UPI. Bal INR 45,210.'"
                 className="w-full bg-black/70 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-amber-400/80 font-mono"
               />
             </div>
@@ -802,7 +898,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                     'Acct XX9812 debited with INR 750.00 on 16-Mar-26 at ZOMATO UPI Ref 4910291. Avl Bal 54,200.'
                   );
                 }}
-                className="text-[11px] text-zinc-400 hover:text-amber-300 font-mono underline"
+                className="text-[11px] text-zinc-400 hover:text-amber-300 font-mono underline cursor-pointer"
               >
                 Insert Sample SMS
               </button>
@@ -810,17 +906,17 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <button
                 onClick={handleSmsSubmit}
                 disabled={!rawSmsText.trim() || isParsingSms}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold font-mono disabled:opacity-40 flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold font-mono disabled:opacity-40 flex items-center gap-1.5 cursor-pointer"
               >
                 {isParsingSms ? (
                   <>
                     <span className="animate-spin">↻</span>
-                    <span>Sanitizing & Parsing...</span>
+                    <span>Parsing...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Parse into Ledger</span>
+                    <span>Save to Ledger</span>
                   </>
                 )}
               </button>
@@ -829,13 +925,13 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
         </div>
       )}
 
-      {/* Manual Quick Add Modal */}
+      {/* Manual Add Transaction Modal */}
       {isManualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-[#030a05] border border-amber-500/30 p-5 shadow-2xl space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-cinzel text-xs font-bold text-amber-300 uppercase">
-                Add Transaction
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-2xl horology-bezel p-5 shadow-2xl space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/20">
+              <span className="font-serif text-sm font-bold text-[#FFF3C4] uppercase tracking-wider">
+                + New Transaction
               </span>
               <button
                 onClick={() => setIsManualModalOpen(false)}
@@ -850,10 +946,10 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <button
                 type="button"
                 onClick={() => setManualType('debit')}
-                className={`py-1.5 rounded-lg text-xs font-bold font-mono transition ${
+                className={`py-2 rounded-lg text-xs font-bold font-mono transition cursor-pointer ${
                   manualType === 'debit'
-                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                    : 'text-zinc-500'
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-inner'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 - Debit (Expense)
@@ -861,10 +957,10 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <button
                 type="button"
                 onClick={() => setManualType('credit')}
-                className={`py-1.5 rounded-lg text-xs font-bold font-mono transition ${
+                className={`py-2 rounded-lg text-xs font-bold font-mono transition cursor-pointer ${
                   manualType === 'credit'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                    : 'text-zinc-500'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-inner'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 + Credit (Income)
@@ -872,18 +968,21 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] font-mono text-zinc-400 mb-1">Title</label>
+              <label className="block text-[11px] font-serif text-[#E5C378] uppercase mb-1">
+                Title / Merchant
+              </label>
               <input
                 type="text"
                 value={manualTitle}
                 onChange={(e) => setManualTitle(e.target.value)}
-                placeholder="e.g. Starbucks, Salary, Metro"
-                className="w-full bg-black/70 border border-zinc-800 rounded-xl py-2 px-3 text-xs text-zinc-100 focus:outline-none focus:border-amber-400"
+                placeholder="e.g. Starbucks, Whole Foods, Consulting"
+                className="w-full bg-black/70 border border-[#D4AF37]/30 rounded-xl py-2 px-3 text-xs text-zinc-100 focus:outline-none focus:border-[#D4AF37]"
+                autoFocus
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-mono text-zinc-400 mb-1">
+              <label className="block text-[11px] font-serif text-[#E5C378] uppercase mb-1">
                 Amount ({currency})
               </label>
               <input
@@ -892,52 +991,91 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 value={manualAmount}
                 onChange={(e) => setManualAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full bg-black/70 border border-zinc-800 rounded-xl py-2 px-3 text-xs text-zinc-100 font-mono focus:outline-none focus:border-amber-400"
+                className="w-full bg-black/70 border border-[#D4AF37]/30 rounded-xl py-2 px-3 text-xs text-zinc-100 font-mono focus:outline-none focus:border-[#D4AF37]"
               />
             </div>
 
-            <div>
-              <label className="block text-[11px] font-mono text-zinc-400 mb-1">Category</label>
-              <select
-                value={manualCategory}
-                onChange={(e) => setManualCategory(e.target.value as ExpenseCategory)}
-                className="w-full bg-black/70 border border-zinc-800 rounded-xl py-2 px-3 text-xs text-zinc-200 focus:outline-none focus:border-amber-400"
-              >
-                {categories.map((c) => (
-                  <option key={c.name} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[11px] font-serif text-[#E5C378] uppercase mb-1">
+                  Category
+                </label>
+                <select
+                  value={manualCategory}
+                  onChange={(e) => setManualCategory(e.target.value as ExpenseCategory)}
+                  className="w-full bg-[#0D120E] border border-[#D4AF37]/30 rounded-xl py-2 px-2.5 text-xs text-zinc-200 focus:outline-none focus:border-[#D4AF37]"
+                >
+                  {categories.map((c) => (
+                    <option key={c.name} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-serif text-[#E5C378] uppercase mb-1">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={manualDate}
+                  onChange={(e) => setManualDate(e.target.value)}
+                  className="w-full bg-black/70 border border-[#D4AF37]/30 rounded-xl py-1.5 px-2.5 text-xs text-zinc-200 font-mono focus:outline-none focus:border-[#D4AF37]"
+                />
+              </div>
             </div>
 
-            <button
-              onClick={() => {
-                const amt = parseFloat(manualAmount);
-                if (!manualTitle.trim() || isNaN(amt) || amt <= 0) return;
-                onAddTransaction({
-                  title: manualTitle.trim(),
-                  amount: amt,
-                  type: manualType,
-                  category: manualCategory,
-                  merchant: manualTitle.trim(),
-                  paymentMethod: 'Apple Pay',
-                  date: new Date().toISOString().split('T')[0],
-                });
-                if (soundEnabled) {
-                  if (manualType === 'credit') soundFx.goldChime();
-                  else soundFx.debitChirp();
-                }
-                triggerHaptic('success');
-                setIsManualModalOpen(false);
-                setManualTitle('');
-                setManualAmount('');
-              }}
-              disabled={!manualTitle.trim() || !manualAmount}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold text-xs font-mono disabled:opacity-40 transition"
-            >
-              Save to Ledger
-            </button>
+            <div>
+              <label className="block text-[11px] font-serif text-[#E5C378] uppercase mb-1">
+                Payment Method
+              </label>
+              <input
+                type="text"
+                value={manualPaymentMethod}
+                onChange={(e) => setManualPaymentMethod(e.target.value)}
+                placeholder="Apple Pay, UPI, Credit Card, Cash..."
+                className="w-full bg-black/70 border border-[#D4AF37]/30 rounded-xl py-2 px-3 text-xs text-zinc-100 focus:outline-none focus:border-[#D4AF37]"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsManualModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-zinc-300 font-serif"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const amt = parseFloat(manualAmount);
+                  if (!manualTitle.trim() || isNaN(amt) || amt <= 0) return;
+                  onAddTransaction({
+                    title: manualTitle.trim(),
+                    amount: amt,
+                    type: manualType,
+                    category: manualCategory,
+                    merchant: manualTitle.trim(),
+                    paymentMethod: manualPaymentMethod.trim() || 'Apple Pay',
+                    date: manualDate || new Date().toISOString().split('T')[0],
+                  });
+                  if (soundEnabled) {
+                    if (manualType === 'credit') soundFx.goldChime();
+                    else soundFx.debitChirp();
+                  }
+                  triggerHaptic('success');
+                  setIsManualModalOpen(false);
+                  setManualTitle('');
+                  setManualAmount('');
+                }}
+                disabled={!manualTitle.trim() || !manualAmount}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-bold text-xs font-serif shadow-md shadow-[#D4AF37]/30 disabled:opacity-40 cursor-pointer"
+              >
+                Save Entry
+              </button>
+            </div>
           </div>
         </div>
       )}

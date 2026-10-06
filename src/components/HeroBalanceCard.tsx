@@ -7,6 +7,7 @@ interface HeroBalanceCardProps {
   netBalance: number;
   currency: string;
   transactionCount: number;
+  currentMonth?: string;
 }
 
 export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
@@ -15,6 +16,7 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
   netBalance,
   currency,
   transactionCount,
+  currentMonth,
 }) => {
   const isPositive = netBalance >= 0;
   const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -26,8 +28,8 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
 
   // Calculate Inflow vs Outflow Complication Dial percentage
   const totalVolume = totalCredited + totalDebited;
-  const inflowPercent = totalVolume > 0 ? Math.min(100, Math.round((totalCredited / totalVolume) * 100)) : 50;
-  const burnPercent = totalVolume > 0 ? Math.min(100, Math.round((totalDebited / totalVolume) * 100)) : 50;
+  const inflowPercent = totalVolume > 0 ? Math.min(100, Math.round((totalCredited / totalVolume) * 100)) : 0;
+  const burnPercent = totalVolume > 0 ? Math.min(100, Math.round((totalDebited / totalVolume) * 100)) : 0;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -60,23 +62,27 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
         {/* Engine-Turned Guilloché Rings Background */}
         <div className="absolute inset-0 guilloche-rings opacity-40 pointer-events-none" />
 
-        {/* Dial Header: Calibre Specification & Jewel Count */}
+        {/* Dial Header: Calibre Specification & Month */}
         <div className="relative z-10 flex items-center justify-between pb-2 border-b border-[#D4AF37]/15">
           <div className="flex items-center gap-1.5">
             <span className="ruby-bearing" />
             <span className="font-serif text-[11px] tracking-widest text-[#E5C378] uppercase font-semibold">
-              CALIBRE IC-902 · 28 JEWELS
+              {currentMonth ? `${currentMonth.toUpperCase()} SUMMARY` : 'REAL-TIME BALANCE'}
             </span>
           </div>
 
           <div
             className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-serif tracking-wider uppercase font-semibold backdrop-blur-md ${
-              isPositive
+              transactionCount === 0
+                ? 'bg-zinc-900/80 border-zinc-700 text-zinc-400'
+                : isPositive
                 ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
                 : 'bg-rose-950/60 border-rose-500/40 text-rose-300 shadow-[0_0_10px_rgba(244,63,94,0.2)]'
             }`}
           >
-            {isPositive ? (
+            {transactionCount === 0 ? (
+              <span>NO DATA THIS MONTH</span>
+            ) : isPositive ? (
               <>
                 <TrendingUp className="w-3 h-3 text-emerald-400" />
                 <span>SOLVENT · SURPLUS</span>
@@ -98,7 +104,7 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
 
           <div className="mt-1 flex items-baseline justify-center gap-1">
             <span className="font-serif text-2xl sm:text-3xl font-normal text-[#E5C378]">
-              {isPositive ? '+' : '-'}
+              {netBalance >= 0 ? '+' : '-'}
               {currency}
             </span>
             <span className="font-serif text-4xl sm:text-5xl font-bold tracking-tight gold-leaf-text drop-shadow-[0_2px_12px_rgba(212,175,55,0.25)]">
@@ -107,9 +113,9 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
           </div>
 
           <div className="mt-1.5 flex items-center justify-center gap-2 text-[10px] font-mono text-zinc-400">
-            <span>{transactionCount} LEDGER ENTRIES</span>
+            <span>{transactionCount} {transactionCount === 1 ? 'RECORD' : 'RECORDS'} THIS MONTH</span>
             <span className="text-[#D4AF37]/60">·</span>
-            <span className="text-[#F5D478] font-serif tracking-wider uppercase">PERPÉTUEL</span>
+            <span className="text-[#F5D478] font-serif tracking-wider uppercase">PERPETUAL</span>
           </div>
         </div>
 
@@ -176,8 +182,8 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
 
         {/* Hallmark Engraving at Bottom Bezel */}
         <div className="relative z-10 mt-3 pt-2 border-t border-[#D4AF37]/10 flex items-center justify-between text-[9px] text-[#D4AF37]/60 font-serif tracking-[0.2em] uppercase">
-          <span>MANUFACTURE D'HORLOGERIE</span>
-          <span>POINÇON DE GENÈVE</span>
+          <span>MICRO-SPENDS PRECISION</span>
+          <span>ICARUS EDITION</span>
         </div>
       </div>
     </div>

@@ -50,10 +50,16 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       await signInWithGoogle();
       if (soundEnabled) soundFx.goldChime();
       triggerHaptic('success');
-      setSyncStatusMsg('Clé Maîtresse Google liée avec succès au Coffre-Fort Cloud.');
+      setSyncStatusMsg('Google Account connected successfully. Real-time Firestore sync active.');
     } catch (err: any) {
       console.error('Google Sign In Error:', err);
-      setAuthError(err.message || 'Authentification Google interrompue.');
+      if (err.code === 'auth/popup-blocked') {
+        setAuthError('Pop-up was blocked by browser. Please allow popups for this site to sign in.');
+      } else if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
+        setAuthError('Sign-in cancelled by user.');
+      } else {
+        setAuthError(err.message || 'Google Authentication failed. Please try again.');
+      }
       if (soundEnabled) soundFx.deleteDrop();
     } finally {
       setIsSigningIn(false);
@@ -65,7 +71,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       if (soundEnabled) soundFx.tap();
       await signOutUser();
       triggerHaptic('light');
-      setSyncStatusMsg('Verrouillage du Coffre Cloud effectué.');
+      setSyncStatusMsg('Signed out of Google account.');
     } catch (err: any) {
       console.error('Sign out error:', err);
     }
@@ -78,9 +84,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       await onSyncToCloud();
       if (soundEnabled) soundFx.goldChime();
       triggerHaptic('success');
-      setSyncStatusMsg('Toutes les écritures sont consignées sur Google Cloud Firestore.');
+      setSyncStatusMsg('All transactions and subscriptions saved to Google Cloud Firestore.');
     } catch (err: any) {
-      setSyncStatusMsg('Erreur de synchronisation: ' + (err.message || 'Vérifiez la connexion réseau.'));
+      setSyncStatusMsg('Sync error: ' + (err.message || 'Check network connection.'));
     }
   };
 
@@ -91,9 +97,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       await onRestoreFromCloud();
       if (soundEnabled) soundFx.goldChime();
       triggerHaptic('success');
-      setSyncStatusMsg('Livre des comptes restauré avec succès depuis Google Cloud Firestore.');
+      setSyncStatusMsg('Ledger successfully restored from Google Cloud Firestore.');
     } catch (err: any) {
-      setSyncStatusMsg('Erreur de restauration: ' + (err.message || 'Impossible de récupérer les données.'));
+      setSyncStatusMsg('Restore error: ' + (err.message || 'Could not fetch cloud data.'));
     }
   };
 
@@ -109,10 +115,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-serif font-bold text-[#FFF3C4] uppercase tracking-wider">
-                Coffre Privé · Google Cloud
+                Cloud Vault & Authentication
               </h2>
               <p className="text-[11px] font-mono text-[#D4AF37]/70">
-                CHRONO-DATABASE & AUTHENTIFICATION
+                GOOGLE FIRESTORE PERSISTENCE
               </p>
             </div>
           </div>
@@ -121,8 +127,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               if (soundEnabled) soundFx.tap();
               onClose();
             }}
-            className="w-8 h-8 rounded-lg knurled-crown text-zinc-400 hover:text-white transition flex items-center justify-center"
-            aria-label="Fermer"
+            className="w-8 h-8 rounded-lg knurled-crown text-zinc-400 hover:text-white transition flex items-center justify-center cursor-pointer"
+            aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
@@ -148,10 +154,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-serif font-bold text-sm text-white truncate">
-                      {currentUser.displayName || 'Compte Google Maître'}
+                      {currentUser.displayName || 'Google Account Owner'}
                     </span>
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">
-                      LIAISON ACTIVE
+                      SYNC ACTIVE
                     </span>
                   </div>
                   <p className="text-zinc-400 font-mono text-[11px] truncate mt-0.5">
@@ -164,15 +170,15 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="p-3 rounded-xl horology-subdial">
                   <span className="text-[10px] font-serif uppercase tracking-wider text-[#E5C378] block">
-                    Actes en Mémoire
+                    Local Memory
                   </span>
                   <span className="text-base font-serif font-bold text-white mt-1 block">
-                    {transactionCount} Écritures
+                    {transactionCount} Entries
                   </span>
                 </div>
                 <div className="p-3 rounded-xl horology-subdial">
                   <span className="text-[10px] font-serif uppercase tracking-wider text-[#E5C378] block">
-                    Coffre-Fort Cloud
+                    Cloud Database
                   </span>
                   <span className="text-base font-serif font-bold text-emerald-400 mt-1 flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Firestore
@@ -185,27 +191,27 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 <button
                   onClick={handleManualSync}
                   disabled={isSyncing}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition shadow-lg shadow-[#D4AF37]/25 disabled:opacity-50"
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition shadow-lg shadow-[#D4AF37]/25 disabled:opacity-50 cursor-pointer"
                 >
                   <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? 'Consignation en cours...' : 'Consigner Tout au Coffre Cloud'}
+                  {isSyncing ? 'Syncing to Cloud...' : 'Push All Entries to Cloud'}
                 </button>
 
                 <button
                   onClick={handleManualRestore}
                   disabled={isSyncing}
-                  className="w-full py-2.5 px-4 rounded-xl knurled-crown text-[#F5D478] font-serif text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition"
+                  className="w-full py-2.5 px-4 rounded-xl knurled-crown text-[#F5D478] font-serif text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition cursor-pointer"
                 >
                   <Database className="w-4 h-4 text-[#D4AF37]" />
-                  Restaurer les Écritures depuis le Cloud
+                  Restore Entries from Cloud
                 </button>
 
                 <button
                   onClick={handleSignOut}
-                  className="w-full py-2 px-4 rounded-xl bg-rose-950/40 hover:bg-rose-950/70 text-rose-300 border border-rose-500/30 text-xs flex items-center justify-center gap-2 transition font-serif"
+                  className="w-full py-2 px-4 rounded-xl bg-rose-950/40 hover:bg-rose-950/70 text-rose-300 border border-rose-500/30 text-xs flex items-center justify-center gap-2 transition font-serif cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  Verrouiller la Clé Google
+                  Sign Out
                 </button>
               </div>
             </div>
@@ -218,10 +224,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
               <div>
                 <h3 className="text-sm font-serif font-bold text-[#FFF3C4] uppercase tracking-wider">
-                  Accès Privé au Coffre-Fort
+                  Secure Cloud Storage
                 </h3>
                 <p className="text-zinc-400 text-xs mt-1 max-w-xs mx-auto font-sans leading-relaxed">
-                  Liez votre compte Google pour sauvegarder en continu vos écritures sur Google Cloud Firestore avec chiffrement dédié.
+                  Sign in with your Google account to automatically safeguard and synchronize your financial ledger across devices in real time with Google Cloud Firestore.
                 </p>
               </div>
 
@@ -234,10 +240,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               <button
                 onClick={handleSignIn}
                 disabled={isSigningIn}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition shadow-lg shadow-[#D4AF37]/25 disabled:opacity-50"
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition shadow-lg shadow-[#D4AF37]/25 disabled:opacity-50 cursor-pointer"
               >
                 <LogIn className="w-4 h-4" />
-                {isSigningIn ? 'Liaison en cours...' : 'Connexion Google Sécurisée'}
+                {isSigningIn ? 'Connecting...' : 'Sign in with Google'}
               </button>
             </div>
           )}

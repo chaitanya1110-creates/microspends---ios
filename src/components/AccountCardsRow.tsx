@@ -13,8 +13,8 @@ export const AccountCardsRow: React.FC<AccountCardsRowProps> = ({
   currency,
 }) => {
   const totalFlow = totalDebited + totalCredited || 1;
-  const debitRatio = Math.min(100, Math.round((totalDebited / totalFlow) * 100));
-  const creditRatio = Math.min(100, Math.round((totalCredited / totalFlow) * 100));
+  const debitRatio = totalDebited + totalCredited > 0 ? Math.min(100, Math.round((totalDebited / totalFlow) * 100)) : 0;
+  const creditRatio = totalDebited + totalCredited > 0 ? Math.min(100, Math.round((totalCredited / totalFlow) * 100)) : 0;
 
   return (
     <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
@@ -25,7 +25,7 @@ export const AccountCardsRow: React.FC<AccountCardsRowProps> = ({
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[10px] font-serif uppercase tracking-widest text-[#E5C378] font-semibold">
-              Débit Total
+              Total Debited
             </span>
             <div className="w-6 h-6 rounded-lg bg-rose-950/70 border border-rose-500/40 flex items-center justify-center text-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.3)]">
               <ArrowDownRight className="w-3.5 h-3.5" />
@@ -40,7 +40,7 @@ export const AccountCardsRow: React.FC<AccountCardsRowProps> = ({
         {/* Progress ratio indicator */}
         <div className="mt-3">
           <div className="flex items-center justify-between text-[9px] font-mono text-zinc-400 mb-1">
-            <span>Cycle Volume</span>
+            <span>Outflow Share</span>
             <span className="text-rose-400 font-semibold">{debitRatio}%</span>
           </div>
           <div className="w-full h-1 bg-black/80 border border-[#D4AF37]/20 rounded-full overflow-hidden">
@@ -59,7 +59,7 @@ export const AccountCardsRow: React.FC<AccountCardsRowProps> = ({
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[10px] font-serif uppercase tracking-widest text-[#E5C378] font-semibold">
-              Crédit Total
+              Total Credited
             </span>
             <div className="w-6 h-6 rounded-lg bg-emerald-950/70 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.3)]">
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -74,7 +74,7 @@ export const AccountCardsRow: React.FC<AccountCardsRowProps> = ({
         {/* Progress ratio indicator */}
         <div className="mt-3">
           <div className="flex items-center justify-between text-[9px] font-mono text-zinc-400 mb-1">
-            <span>Cycle Volume</span>
+            <span>Inflow Share</span>
             <span className="text-emerald-400 font-semibold">{creditRatio}%</span>
           </div>
           <div className="w-full h-1 bg-black/80 border border-[#D4AF37]/20 rounded-full overflow-hidden">

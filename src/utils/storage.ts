@@ -277,10 +277,10 @@ export function loadTransactions(): Transaction[] {
     const raw = localStorage.getItem(TRANSACTIONS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch {}
-  return getInitialTransactions();
+  return [];
 }
 
 export function saveTransactions(txs: Transaction[]) {
@@ -294,10 +294,10 @@ export function loadSubscriptions(): Subscription[] {
     const raw = localStorage.getItem(SUBSCRIPTIONS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch {}
-  return getInitialSubscriptions();
+  return [];
 }
 
 export function saveSubscriptions(subs: Subscription[]) {
@@ -351,7 +351,7 @@ export function saveCurrency(c: string) {
 // Data Migration Manager - Export and Import JSON
 export function exportBackupData(): string {
   const data = {
-    appName: 'MIcroSpends ~ Icarus',
+    appName: 'micro-spends ~ icarus edition',
     version: '2.0.0',
     exportedAt: new Date().toISOString(),
     currency: loadCurrency(),

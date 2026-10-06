@@ -45,6 +45,10 @@ jobs:
           fi
           npx cap sync ios
 
+          # Generate high-fidelity iOS App Icons from user's Chrome Money Bag logo
+          echo "Updating Xcode AppIcon set..."
+          node update-ios-icons.cjs
+
           # If App.xcworkspace is missing, run pod install to generate it
           if [ ! -d "ios/App/App.xcworkspace" ] && [ -f "ios/App/Podfile" ]; then
             echo "Generating App.xcworkspace via pod install..."

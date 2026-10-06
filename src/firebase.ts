@@ -21,6 +21,53 @@ import {
 import firebaseConfig from '../firebase-applet-config.json';
 import { Transaction, Subscription, AdvisorInsight } from './types';
 
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  return errInfo;
+}
+
 // Initialize Firebase App
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
@@ -50,11 +97,16 @@ testConnection();
 
 // Authentication helpers
 export async function signInWithGoogle(): Promise<FirebaseUser> {
-  const result = await signInWithPopup(auth, googleProvider);
-  if (result.user) {
-    await syncUserDoc(result.user);
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    if (result.user) {
+      await syncUserDoc(result.user);
+    }
+    return result.user;
+  } catch (err: any) {
+    console.error('Google Sign In error:', err);
+    throw err;
   }
-  return result.user;
 }
 
 export async function signOutUser(): Promise<void> {
@@ -63,12 +115,13 @@ export async function signOutUser(): Promise<void> {
 
 // User Profile Firestore Sync
 export async function syncUserDoc(user: FirebaseUser, currency?: string) {
+  const path = `users/${user.uid}`;
   try {
     const userRef = doc(db, 'users', user.uid);
     const data: Record<string, any> = {
       uid: user.uid,
       email: user.email || '',
-      displayName: user.displayName || 'Anonymous User',
+      displayName: user.displayName || 'Icarus Member',
       photoURL: user.photoURL || '',
       updatedAt: Date.now()
     };
@@ -77,12 +130,13 @@ export async function syncUserDoc(user: FirebaseUser, currency?: string) {
     }
     await setDoc(userRef, data, { merge: true });
   } catch (err) {
-    console.error('Failed to sync user doc to Firestore:', err);
+    handleFirestoreError(err, OperationType.WRITE, path);
   }
 }
 
 // Firestore Transactions CRUD
 export async function fetchUserTransactions(userId: string): Promise<Transaction[]> {
+  const path = `users/${userId}/transactions`;
   try {
     const colRef = collection(db, 'users', userId, 'transactions');
     const q = query(colRef, orderBy('createdAt', 'desc'));
@@ -96,28 +150,29 @@ export async function fetchUserTransactions(userId: string): Promise<Transaction
         amount: Number(data.amount) || 0,
         type: data.type,
         category: data.category,
-        merchant: data.merchant,
+        merchant: data.merchant || data.title,
         date: data.date,
-        paymentMethod: data.paymentMethod,
-        note: data.note,
+        paymentMethod: data.paymentMethod || 'Apple Pay',
+        note: data.note || '',
         createdAt: data.createdAt || Date.now()
       });
     });
     return items;
   } catch (err) {
-    console.error('Error fetching transactions from Firestore:', err);
+    handleFirestoreError(err, OperationType.LIST, path);
     return [];
   }
 }
 
 export async function saveUserTransactionToFirestore(userId: string, tx: Transaction): Promise<void> {
+  const path = `users/${userId}/transactions/${tx.id}`;
   try {
     const txRef = doc(db, 'users', userId, 'transactions', tx.id);
     const payload: Record<string, any> = {
       id: tx.id,
       userId,
       title: tx.title,
-      amount: tx.amount,
+      amount: Number(tx.amount) || 0,
       type: tx.type,
       category: tx.category,
       date: tx.date,
@@ -129,21 +184,23 @@ export async function saveUserTransactionToFirestore(userId: string, tx: Transac
 
     await setDoc(txRef, payload, { merge: true });
   } catch (err) {
-    console.error('Error saving transaction to Firestore:', err);
+    handleFirestoreError(err, OperationType.WRITE, path);
   }
 }
 
 export async function deleteUserTransactionFromFirestore(userId: string, txId: string): Promise<void> {
+  const path = `users/${userId}/transactions/${txId}`;
   try {
     const txRef = doc(db, 'users', userId, 'transactions', txId);
     await deleteDoc(txRef);
   } catch (err) {
-    console.error('Error deleting transaction from Firestore:', err);
+    handleFirestoreError(err, OperationType.DELETE, path);
   }
 }
 
 // Firestore Subscriptions CRUD
 export async function fetchUserSubscriptions(userId: string): Promise<Subscription[]> {
+  const path = `users/${userId}/subscriptions`;
   try {
     const colRef = collection(db, 'users', userId, 'subscriptions');
     const snapshot = await getDocs(colRef);
@@ -163,19 +220,20 @@ export async function fetchUserSubscriptions(userId: string): Promise<Subscripti
     });
     return items;
   } catch (err) {
-    console.error('Error fetching subscriptions from Firestore:', err);
+    handleFirestoreError(err, OperationType.LIST, path);
     return [];
   }
 }
 
 export async function saveUserSubscriptionToFirestore(userId: string, sub: Subscription): Promise<void> {
+  const path = `users/${userId}/subscriptions/${sub.id}`;
   try {
     const subRef = doc(db, 'users', userId, 'subscriptions', sub.id);
     const payload: Record<string, any> = {
       id: sub.id,
       userId,
       name: sub.name,
-      amount: sub.amount,
+      amount: Number(sub.amount) || 0,
       billingCycle: sub.billingCycle,
       active: sub.active,
       category: sub.category || 'Bills & Utilities',
@@ -185,21 +243,23 @@ export async function saveUserSubscriptionToFirestore(userId: string, sub: Subsc
 
     await setDoc(subRef, payload, { merge: true });
   } catch (err) {
-    console.error('Error saving subscription to Firestore:', err);
+    handleFirestoreError(err, OperationType.WRITE, path);
   }
 }
 
 export async function deleteUserSubscriptionFromFirestore(userId: string, subId: string): Promise<void> {
+  const path = `users/${userId}/subscriptions/${subId}`;
   try {
     const subRef = doc(db, 'users', userId, 'subscriptions', subId);
     await deleteDoc(subRef);
   } catch (err) {
-    console.error('Error deleting subscription from Firestore:', err);
+    handleFirestoreError(err, OperationType.DELETE, path);
   }
 }
 
 // Firestore Advisor Insights Cache
 export async function saveAdvisorInsightToFirestore(userId: string, insight: AdvisorInsight): Promise<void> {
+  const path = `users/${userId}/insights/latest`;
   try {
     const insightRef = doc(db, 'users', userId, 'insights', 'latest');
     const payload = {
@@ -213,6 +273,6 @@ export async function saveAdvisorInsightToFirestore(userId: string, insight: Adv
     };
     await setDoc(insightRef, payload);
   } catch (err) {
-    console.error('Error saving insight to Firestore:', err);
+    handleFirestoreError(err, OperationType.WRITE, path);
   }
 }

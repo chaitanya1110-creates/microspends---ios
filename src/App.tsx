@@ -32,6 +32,7 @@ import {
   syncUserDoc
 } from './firebase';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
+import { getApiUrl } from './utils/api';
 import { IosStatusBar } from './components/IosStatusBar';
 import { HeroBalanceCard } from './components/HeroBalanceCard';
 import { AccountCardsRow } from './components/AccountCardsRow';
@@ -175,17 +176,15 @@ export default function App() {
     }
   };
 
-  // Month-filtered transactions & metrics
+  // Month-filtered transactions & real metrics strictly for selected month
   const currentMonthTransactions = transactions.filter((t) => isDateInMonth(t.date, currentMonth));
   
-  // Show month-specific metrics if entries exist in this month, else total
-  const activeDebitPool = currentMonthTransactions.length > 0 ? currentMonthTransactions : transactions;
-  
-  const totalDebited = activeDebitPool
+  // Real-data metrics strictly for the active month (0 if no data in this month)
+  const totalDebited = currentMonthTransactions
     .filter((t) => t.type === 'debit')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalCredited = activeDebitPool
+  const totalCredited = currentMonthTransactions
     .filter((t) => t.type === 'credit')
     .reduce((sum, t) => sum + t.amount, 0);
 
@@ -325,7 +324,7 @@ export default function App() {
 
     const pollInterval = setInterval(async () => {
       try {
-        const res = await fetch('/api/sms/pending');
+        const res = await fetch(getApiUrl('/api/sms/pending'));
         if (!res.ok) return;
         const data = await res.json();
         const pending = data?.pending || [];
@@ -350,7 +349,7 @@ export default function App() {
             }
           }
 
-          await fetch('/api/sms/mark-read', {
+          await fetch(getApiUrl('/api/sms/mark-read'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids: idsToMark }),
@@ -368,7 +367,7 @@ export default function App() {
       if (soundEnabled) soundFx.tap();
       triggerHaptic('light');
 
-      const res = await fetch('/api/sms/simulate-incoming', {
+      const res = await fetch(getApiUrl('/api/sms/simulate-incoming'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -410,7 +409,7 @@ export default function App() {
         return;
       }
 
-      const res = await fetch('/api/gemini/parse-sms', {
+      const res = await fetch(getApiUrl('/api/gemini/parse-sms'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rawSms: text }),
@@ -514,7 +513,8 @@ export default function App() {
             totalDebited={totalDebited}
             netBalance={netBalance}
             currency={currency}
-            transactionCount={currentMonthTransactions.length || transactions.length}
+            transactionCount={currentMonthTransactions.length}
+            currentMonth={currentMonth}
           />
 
           {/* 2. Dual Account Cards: Total Debited & Credited Outflow */}

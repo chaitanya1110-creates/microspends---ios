@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Transaction } from '../types';
-import { Compass, TrendingUp, Sparkles } from 'lucide-react';
+import { Compass, TrendingUp, Sparkles, PieChart } from 'lucide-react';
+import { isDateInMonth } from '../utils/storage';
 
 interface ChartsTabProps {
   transactions: Transaction[];
@@ -16,9 +17,10 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
   const ringsCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const splineCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Group debit transactions by category
-  const debitTransactions = transactions.filter((t) => t.type === 'debit');
-  const totalDebit = debitTransactions.reduce((acc, t) => acc + t.amount, 0) || 1;
+  // Group debit transactions strictly for the active month
+  const monthTransactions = transactions.filter((t) => isDateInMonth(t.date, currentMonth));
+  const debitTransactions = monthTransactions.filter((t) => t.type === 'debit');
+  const totalDebit = debitTransactions.reduce((acc, t) => acc + t.amount, 0);
 
   const categoryTotals: Record<string, number> = {};
   debitTransactions.forEach((t) => {
@@ -30,7 +32,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
     .map(([category, amount]) => ({
       category,
       amount,
-      percentage: Math.round((amount / totalDebit) * 100),
+      percentage: totalDebit > 0 ? Math.round((amount / totalDebit) * 100) : 0,
     }));
 
   const ringColors = [
@@ -73,36 +75,45 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
     const spacing = 13;
     const baseRadius = (size / 2) - 16;
 
-    for (let i = 0; i < maxRings; i++) {
-      const radius = baseRadius - (i * spacing);
-      if (radius <= 0) break;
+    if (totalDebit > 0 && maxRings > 0) {
+      for (let i = 0; i < maxRings; i++) {
+        const radius = baseRadius - (i * spacing);
+        if (radius <= 0) break;
 
-      const item = sortedCategories[i];
-      const color = ringColors[i % ringColors.length];
-      const fraction = Math.min(1, item.amount / totalDebit);
-      const startAngle = -Math.PI / 2;
-      const endAngle = startAngle + (fraction * Math.PI * 2);
+        const item = sortedCategories[i];
+        const color = ringColors[i % ringColors.length];
+        const fraction = totalDebit > 0 ? Math.min(1, item.amount / totalDebit) : 0;
+        const startAngle = -Math.PI / 2;
+        const endAngle = startAngle + (fraction * Math.PI * 2);
 
-      // Track (dim background circle with gold hue)
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = 'rgba(212, 175, 55, 0.12)';
-      ctx.lineCap = 'round';
-      ctx.stroke();
-
-      // Active sweep arc with gold/jewel luster
-      if (fraction > 0) {
+        // Track
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
         ctx.lineWidth = strokeWidth;
-        ctx.strokeStyle = color;
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.12)';
         ctx.lineCap = 'round';
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 10;
         ctx.stroke();
-        ctx.shadowBlur = 0;
+
+        // Active sweep arc
+        if (fraction > 0) {
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+          ctx.lineWidth = strokeWidth;
+          ctx.strokeStyle = color;
+          ctx.lineCap = 'round';
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 10;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
       }
+    } else {
+      // Empty placeholder ring
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
+      ctx.lineWidth = strokeWidth;
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.15)';
+      ctx.stroke();
     }
 
     // Center jewel pivot
@@ -165,7 +176,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
       }
     });
 
-    const maxAmount = Math.max(...dailySpending, 100);
+    const maxAmount = Math.max(...dailySpending, 10);
     const points = dailySpending.map((amt, idx) => ({
       x: (idx / (daysInMonth - 1)) * (w - 32) + 16,
       y: h - 24 - (amt / maxAmount) * (h - 48),
@@ -212,7 +223,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
 
       // Peak Dots & Callouts
       points.forEach((p) => {
-        if (p.amount > maxAmount * 0.35) {
+        if (p.amount > 0 && p.amount >= maxAmount * 0.35) {
           ctx.beginPath();
           ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
           ctx.fillStyle = '#F5D478';
@@ -224,7 +235,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
           ctx.fillStyle = '#FFF3C4';
           ctx.font = 'bold 9px monospace';
           ctx.textAlign = 'center';
-          ctx.fillText(`J${p.day}`, p.x, p.y - 7);
+          ctx.fillText(`D${p.day}`, p.x, p.y - 7);
         }
       });
     }
@@ -238,44 +249,52 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
           <div className="flex items-center gap-2">
             <span className="ruby-bearing" />
             <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
-              Sphères des Postes Budgétaires
+              Spending Category Spheres
             </h3>
           </div>
           <span className="text-[10px] font-serif text-[#D4AF37]/70 uppercase tracking-widest">
-            ASTROLABE FINANCIER
+            {currentMonth}
           </span>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
-          {/* Canvas Rings */}
-          <div className="relative w-44 h-44 shrink-0 flex items-center justify-center">
-            <canvas ref={ringsCanvasRef} className="w-44 h-44" />
+        {debitTransactions.length === 0 ? (
+          <div className="py-8 text-center">
+            <PieChart className="w-8 h-8 text-[#D4AF37]/30 mx-auto mb-2" />
+            <p className="text-xs font-serif text-zinc-300">No expenses recorded for {currentMonth}.</p>
+            <p className="text-[11px] font-mono text-zinc-500 mt-1">Logged expenses will populate the visual astrolabe rings.</p>
           </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
+            {/* Canvas Rings */}
+            <div className="relative w-44 h-44 shrink-0 flex items-center justify-center">
+              <canvas ref={ringsCanvasRef} className="w-44 h-44" />
+            </div>
 
-          {/* Rings Legend */}
-          <div className="w-full flex-1 space-y-2">
-            {sortedCategories.slice(0, 5).map((cat, idx) => {
-              const color = ringColors[idx % ringColors.length];
-              return (
-                <div key={cat.category} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
-                    />
-                    <span className="text-zinc-200 font-serif text-xs truncate max-w-[120px]">{cat.category}</span>
+            {/* Rings Legend */}
+            <div className="w-full flex-1 space-y-2">
+              {sortedCategories.slice(0, 5).map((cat, idx) => {
+                const color = ringColors[idx % ringColors.length];
+                return (
+                  <div key={cat.category} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
+                      />
+                      <span className="text-zinc-200 font-serif text-xs truncate max-w-[120px]">{cat.category}</span>
+                    </div>
+                    <div className="flex items-center gap-2 font-mono text-[11px]">
+                      <span className="text-zinc-400">{cat.percentage}%</span>
+                      <span className="text-[#F5D478] font-bold">
+                        {currency}{cat.amount.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 font-mono text-[11px]">
-                    <span className="text-zinc-400">{cat.percentage}%</span>
-                    <span className="text-[#F5D478] font-bold">
-                      {currency}{cat.amount.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 2. Daily Spending Trend Bezier Spline */}
@@ -284,14 +303,14 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
           <div className="flex items-center gap-2">
             <span className="ruby-bearing" />
             <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
-              Courbe Chronologique des Dépenses
+              Daily Spending Curve
             </h3>
           </div>
           <span className="text-[11px] font-serif text-[#F5D478] uppercase tracking-wider">{currentMonth}</span>
         </div>
 
         <p className="text-[11px] font-serif text-zinc-400 mb-2">
-          Oscillogramme des sorties journalières avec sommets marqués.
+          Real outflow timeline showing daily velocity and peaks.
         </p>
 
         <div className="w-full h-36 relative rounded-xl bg-black/60 border border-[#D4AF37]/20 overflow-hidden">
@@ -300,38 +319,40 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
       </div>
 
       {/* 3. Detailed Category Breakdown List */}
-      <div className="rounded-2xl p-4 horology-bezel shadow-xl space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15">
-          <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
-            Allocation Totale du Calibre
-          </h3>
-          <span className="text-[10px] font-mono text-zinc-400">
-            Total Sorties: {currency}{totalDebit.toLocaleString()}
-          </span>
-        </div>
+      {sortedCategories.length > 0 && (
+        <div className="rounded-2xl p-4 horology-bezel shadow-xl space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15">
+            <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
+              Total Spend Allocation
+            </h3>
+            <span className="text-[10px] font-mono text-zinc-400">
+              Total Outflow: {currency}{totalDebit.toLocaleString()}
+            </span>
+          </div>
 
-        <div className="space-y-2">
-          {sortedCategories.map((cat, idx) => (
-            <div key={cat.category} className="p-2.5 rounded-xl bg-gradient-to-b from-[#101512] to-[#070A08] border border-[#D4AF37]/20">
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="text-zinc-200 font-serif font-medium">{cat.category}</span>
-                <span className="font-serif text-[#F5D478] font-bold">
-                  {currency}{cat.amount.toLocaleString()} ({cat.percentage}%)
-                </span>
+          <div className="space-y-2">
+            {sortedCategories.map((cat, idx) => (
+              <div key={cat.category} className="p-2.5 rounded-xl bg-gradient-to-b from-[#101512] to-[#070A08] border border-[#D4AF37]/20">
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="text-zinc-200 font-serif font-medium">{cat.category}</span>
+                  <span className="font-serif text-[#F5D478] font-bold">
+                    {currency}{cat.amount.toLocaleString()} ({cat.percentage}%)
+                  </span>
+                </div>
+                <div className="w-full h-1 bg-black/80 rounded-full overflow-hidden border border-[#D4AF37]/20">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${cat.percentage}%`,
+                      backgroundColor: ringColors[idx % ringColors.length],
+                    }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-1 bg-black/80 rounded-full overflow-hidden border border-[#D4AF37]/20">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${cat.percentage}%`,
-                    backgroundColor: ringColors[idx % ringColors.length],
-                  }}
-                />
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

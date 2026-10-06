@@ -58,7 +58,7 @@ export const IosShortcutsModal: React.FC<IosShortcutsModalProps> = ({
             <span>100% Native Apple Shortcuts Automation</span>
           </div>
           <p className="text-zinc-400 text-[11px] leading-relaxed">
-            iOS restricts web apps from reading private SMS directly for security. By setting a 1-time Apple Shortcut automation, iOS pushes every banking SMS directly to MIcroSpends in real time.
+            iOS restricts web apps from reading private SMS directly for security. By setting a 1-time Apple Shortcut automation, iOS pushes every banking SMS directly to micro-spends ~ icarus edition in real time.
           </p>
         </div>
 

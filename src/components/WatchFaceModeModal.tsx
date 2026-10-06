@@ -193,12 +193,14 @@ export const WatchFaceModeModal: React.FC<WatchFaceModeModalProps> = ({
                 {/* 2. Middle Watch Face Center: Concentric Activity Rings & Net Worth */}
                 <div className="my-auto py-2 flex flex-col items-center">
                   <WatchActivityRings
-                    totalDebited={totalDebited}
-                    totalCredited={totalCredited}
-                    activeSubscriptionsCost={activeSubsCost}
+                    dailySpend={totalDebited}
+                    dailyGoal={2000}
+                    monthlySpend={totalDebited}
+                    monthlyGoal={50000}
+                    streakDays={gamification.streakDays}
+                    streakGoal={14}
                     currency={currency}
-                    size={170}
-                    interactive={true}
+                    soundEnabled={soundEnabled}
                   />
 
                   {/* Glanceable Net Metric under rings */}

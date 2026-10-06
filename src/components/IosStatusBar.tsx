@@ -55,7 +55,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
       {/* Simulated Swiss Chronometer System Header */}
       <div className="hidden sm:flex max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto px-5 pt-2 pb-0.5 items-center justify-between text-xs text-zinc-400">
         <div className="flex items-center gap-2">
-          <span className="font-serif text-[13px] tracking-widest text-[#F5D478] uppercase">CHRONOMÈTRE</span>
+          <span className="font-serif text-[13px] tracking-widest text-[#F5D478] uppercase">CHRONOMETER</span>
           <span className="text-[10px] text-zinc-500">·</span>
           <span className="font-mono text-zinc-300 text-[11px]">{timeStr}</span>
         </div>
@@ -73,7 +73,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
       {/* Haute Horlogerie Crown Bar & Controls */}
       <div className="max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto px-3.5 sm:px-5 py-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          {/* Engraved Coat of Arms / Imperial Horlogerie Emblem */}
+          {/* App Icon Emblem */}
           <button 
             type="button"
             className="relative group cursor-pointer active:scale-95 transition-transform" 
@@ -84,10 +84,18 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
             }}
             title="Imperial Treasury Hallmarks & Achievements"
           >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-b from-[#1E231C] to-[#0A0D0B] border border-[#D4AF37]/40 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,235,170,0.3),0_2px_8px_rgba(0,0,0,0.8)]">
-              <span className="font-serif font-bold text-base text-[#F5D478] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-b from-[#1E231C] to-[#0A0D0B] border border-[#D4AF37]/40 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,235,170,0.3),0_2px_8px_rgba(0,0,0,0.8)] overflow-hidden relative">
+              <span className="absolute inset-0 flex items-center justify-center font-serif font-bold text-base text-[#F5D478] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] select-none">
                 IC
               </span>
+              <img 
+                src="/icon.png" 
+                alt="micro-spends icarus icon" 
+                className="absolute inset-0 w-full h-full object-cover z-10"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
             </div>
             {/* Jewel indicator */}
             <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-black shadow-[0_0_6px_#34d399]" />
@@ -95,15 +103,15 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
 
           <div>
             <div className="flex items-center gap-1.5">
-              <h1 className="text-sm font-serif font-bold tracking-wider text-zinc-100 uppercase">
-                ICARUS
+              <h1 className="text-xs sm:text-sm font-serif font-bold tracking-wider text-zinc-100 uppercase">
+                micro-spends
               </h1>
               <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-[#D4AF37]/10 border border-[#D4AF37]/30 font-mono text-[#F5D478] tracking-widest font-semibold uppercase">
-                MANUFACTURE
+                icarus edition
               </span>
             </div>
             <p className="text-[9px] tracking-widest uppercase text-zinc-500 font-mono">
-              GENÈVE · SWISS ORACLE
+              PRECISION LEDGER · REAL SPENDS
             </p>
           </div>
         </div>
@@ -165,7 +173,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
                 onOpenAccountModal();
               }}
               className="relative w-8 h-8 rounded-xl knurled-crown text-zinc-300 hover:text-[#F5D478] transition flex items-center justify-center active:scale-90 overflow-hidden"
-              title={currentUser ? `Safe Owner: ${currentUser.displayName || currentUser.email}` : 'Sign in with Google Vault'}
+              title={currentUser ? `Account Owner: ${currentUser.displayName || currentUser.email}` : 'Sign in with Google Vault'}
               aria-label="Google Cloud Vault"
             >
               {currentUser?.photoURL ? (
@@ -218,7 +226,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
           aria-label="Previous calendar cycle"
         >
           <ChevronLeft className="w-3.5 h-3.5 text-[#D4AF37]" />
-          <span>Rétro</span>
+          <span>Prev</span>
         </button>
 
         {/* Engine-Turned Date Complication Aperture */}
@@ -240,7 +248,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
           className="py-1 px-2.5 rounded-lg text-zinc-400 hover:text-[#F5D478] hover:bg-[#D4AF37]/10 transition flex items-center gap-1 active:scale-95 font-serif text-xs uppercase tracking-wider"
           aria-label="Next calendar cycle"
         >
-          <span>Avance</span>
+          <span>Next</span>
           <ChevronRight className="w-3.5 h-3.5 text-[#D4AF37]" />
         </button>
       </div>

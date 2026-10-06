@@ -53,7 +53,7 @@ export const IpaCompilationModal: React.FC<IpaCompilationModalProps> = ({
 
   const capacitorConfig = `{
   "appId": "com.microspends.app",
-  "appName": "MicroSpends",
+  "appName": "micro-spends ~ icarus edition",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "ios": {

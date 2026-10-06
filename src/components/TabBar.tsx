@@ -17,11 +17,11 @@ export const TabBar: React.FC<TabBarProps> = ({
   soundEnabled,
   upcomingRenewalsCount,
 }) => {
-  const tabs: { id: TabType; labelFr: string; labelEn: string; icon: React.FC<{ className?: string }> }[] = [
-    { id: 'entries', labelFr: 'REGISTRE', labelEn: 'Entries', icon: Compass },
-    { id: 'charts', labelFr: 'SPHÈRES', labelEn: 'Charts', icon: PieChart },
-    { id: 'oracle', labelFr: 'ORACLE', labelEn: 'Auditor', icon: Sparkles },
-    { id: 'vault', labelFr: 'COFFRE', labelEn: 'Vault', icon: ShieldCheck },
+  const tabs: { id: TabType; label: string; subLabel: string; icon: React.FC<{ className?: string }> }[] = [
+    { id: 'entries', label: 'Entries', subLabel: 'Ledger', icon: Compass },
+    { id: 'charts', label: 'Charts', subLabel: 'Analytics', icon: PieChart },
+    { id: 'oracle', label: 'Oracle', subLabel: 'AI Advisor', icon: Sparkles },
+    { id: 'vault', label: 'Vault', subLabel: 'Recurring', icon: ShieldCheck },
   ];
 
   return (
@@ -69,7 +69,7 @@ export const TabBar: React.FC<TabBarProps> = ({
                       <span className="absolute -top-1 -right-1.5 w-1.5 h-1.5 rounded-full bg-[#E5C378] shadow-[0_0_6px_#D4AF37]" />
                     )}
 
-                    {/* Upcoming renewals alert badge on Coffre/Vault */}
+                    {/* Upcoming renewals alert badge on Vault */}
                     {tab.id === 'vault' && upcomingRenewalsCount > 0 && (
                       <span className="absolute -top-1.5 -right-3 w-4 h-4 bg-gradient-to-r from-rose-600 to-amber-600 text-white font-serif text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.7)] border border-black">
                         {upcomingRenewalsCount}
@@ -82,10 +82,10 @@ export const TabBar: React.FC<TabBarProps> = ({
                       isActive ? 'gold-leaf-text' : 'text-zinc-400'
                     }`}
                   >
-                    {tab.labelFr}
+                    {tab.label}
                   </span>
                   <span className="text-[8px] font-mono text-zinc-500 uppercase tracking-tighter leading-none">
-                    {tab.labelEn}
+                    {tab.subLabel}
                   </span>
                 </div>
               </button>

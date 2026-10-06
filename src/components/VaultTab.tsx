@@ -82,7 +82,7 @@ export const VaultTab: React.FC<VaultTabProps> = ({
           <div className="flex items-center gap-2">
             <span className="ruby-bearing" />
             <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
-              Coffre-Fort Perpétuel · Vault Burn Rate
+              Perpetual Vault · Recurring Burn Rate
             </h3>
           </div>
           <button
@@ -91,10 +91,10 @@ export const VaultTab: React.FC<VaultTabProps> = ({
               triggerHaptic('light');
               setIsAddModalOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg knurled-crown text-xs text-[#F5D478] hover:border-[#D4AF37] transition active:scale-95 font-serif"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg knurled-crown text-xs text-[#F5D478] hover:border-[#D4AF37] transition active:scale-95 font-serif cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span className="uppercase tracking-wider">Ajouter</span>
+            <span className="uppercase tracking-wider">+ Add Recurring</span>
           </button>
         </div>
 
@@ -103,23 +103,23 @@ export const VaultTab: React.FC<VaultTabProps> = ({
           {/* Monthly Burn Chamber */}
           <div className="horology-subdial rounded-xl p-3 flex flex-col justify-between">
             <span className="text-[10px] font-serif uppercase tracking-widest text-[#E5C378]">
-              Débit Mensuel Récurrent
+              Monthly Burn Rate
             </span>
             <div className="font-serif text-xl sm:text-2xl font-bold gold-leaf-text mt-1">
               {currency}{Math.round(monthlyBurn).toLocaleString()}
             </div>
-            <span className="text-[9px] text-zinc-500 font-mono mt-0.5">par cycle de 30 jours</span>
+            <span className="text-[9px] text-zinc-500 font-mono mt-0.5">per 30-day cycle</span>
           </div>
 
           {/* Annualized Burn Chamber */}
           <div className="horology-subdial rounded-xl p-3 flex flex-col justify-between">
             <span className="text-[10px] font-serif uppercase tracking-widest text-[#E5C378]">
-              Engagement Annuel
+              Annual Commitment
             </span>
             <div className="font-serif text-xl sm:text-2xl font-bold text-rose-300 mt-1">
               {currency}{Math.round(annualizedBurn).toLocaleString()}
             </div>
-            <span className="text-[9px] text-zinc-500 font-mono mt-0.5">projection 365 jours</span>
+            <span className="text-[9px] text-zinc-500 font-mono mt-0.5">365-day projection</span>
           </div>
         </div>
       </div>
@@ -131,11 +131,11 @@ export const VaultTab: React.FC<VaultTabProps> = ({
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-[#F5D478] animate-pulse" />
               <h4 className="font-serif text-xs font-bold text-[#FFF3C4] uppercase tracking-wider">
-                Alerte Sonnerie · Échéances Proches (7 Jours)
+                Renewal Alarm · Due in Next 7 Days
               </h4>
             </div>
             <span className="text-[10px] font-serif text-[#D4AF37] px-2 py-0.5 rounded-full border border-[#D4AF37]/40 bg-black/40">
-              {upcomingRenewals.length} échéance{upcomingRenewals.length > 1 ? 's' : ''}
+              {upcomingRenewals.length} upcoming
             </span>
           </div>
 
@@ -149,7 +149,7 @@ export const VaultTab: React.FC<VaultTabProps> = ({
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-xs font-serif font-bold text-zinc-100">{sub.name}</span>
                     <span className="text-[10px] font-mono text-[#F5D478]">
-                      · Échéance {sub.nextDueDate}
+                      · Due {sub.nextDueDate}
                     </span>
                   </div>
                   <span className="text-[11px] font-serif text-zinc-400">
@@ -164,11 +164,11 @@ export const VaultTab: React.FC<VaultTabProps> = ({
                     if (soundEnabled) soundFx.debitChirp();
                     triggerHaptic('success');
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] hover:brightness-110 text-black font-serif font-bold text-xs transition flex items-center gap-1.5 shadow-md shadow-[#D4AF37]/20 active:scale-95 shrink-0"
-                  title="Consigner cette échéance dans le registre"
+                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] hover:brightness-110 text-black font-serif font-bold text-xs transition flex items-center gap-1.5 shadow-md shadow-[#D4AF37]/20 active:scale-95 shrink-0 cursor-pointer"
+                  title="Log renewal to ledger"
                 >
                   <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>Consigner</span>
+                  <span>Log Spend</span>
                 </button>
               </div>
             ))}
@@ -182,60 +182,75 @@ export const VaultTab: React.FC<VaultTabProps> = ({
           <div className="flex items-center gap-2">
             <span className="ruby-bearing" />
             <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
-              Services Actifs au Coffre ({subscriptions.length})
+              Active Vault Commitments ({subscriptions.length})
             </h3>
           </div>
           <span className="text-[10px] font-serif text-[#D4AF37]/70 uppercase tracking-widest">
-            SURVEILLANCE COMPLÈTE
+            ACTIVE TRACKING
           </span>
         </div>
 
-        <div className="space-y-2">
-          {subscriptions.map((sub) => (
-            <div
-              key={sub.id}
-              className="p-3 rounded-xl bg-gradient-to-b from-[#101512] to-[#070A08] border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition flex items-center justify-between gap-2"
+        {subscriptions.length === 0 ? (
+          <div className="py-8 text-center">
+            <ShieldCheck className="w-8 h-8 text-[#D4AF37]/30 mx-auto mb-2" />
+            <p className="text-xs font-serif text-zinc-300">No recurring commitments in your Vault.</p>
+            <p className="text-[11px] font-mono text-zinc-500 mt-1">Add subscriptions like Netflix, iCloud, Gym, or rent.</p>
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(true)}
+              className="mt-3 px-3 py-1.5 rounded-xl bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 border border-[#D4AF37]/40 text-[#F5D478] text-xs font-serif font-semibold transition cursor-pointer"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/25 text-[#F5D478] flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4" />
+              + Add First Subscription
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {subscriptions.map((sub) => (
+              <div
+                key={sub.id}
+                className="p-3 rounded-xl bg-gradient-to-b from-[#101512] to-[#070A08] border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition flex items-center justify-between gap-2"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/25 text-[#F5D478] flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-serif font-bold text-zinc-100">{sub.name}</span>
+                      <span className="text-[10px] font-serif text-[#D4AF37] font-medium">
+                        · {sub.billingCycle}
+                      </span>
+                    </div>
+                    <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
+                      Next Due: {sub.nextDueDate} · {sub.category}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-serif font-bold text-zinc-100">{sub.name}</span>
-                    <span className="text-[10px] font-serif text-[#D4AF37] font-medium">
-                      · {sub.billingCycle}
-                    </span>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <div className="text-xs font-serif font-bold text-[#F5D478]">
+                      {currency}{sub.amount.toLocaleString()}
+                    </div>
+                    <div className="text-[9px] font-mono text-zinc-500 uppercase">{sub.billingCycle}</div>
                   </div>
-                  <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
-                    Prochaine échéance: {sub.nextDueDate} · {sub.category}
-                  </div>
+
+                  <button
+                    onClick={() => {
+                      onDeleteSubscription(sub.id);
+                      if (soundEnabled) soundFx.deleteDrop();
+                      triggerHaptic('heavy');
+                    }}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+                    title="Remove from Vault"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <div className="text-xs font-serif font-bold text-[#F5D478]">
-                    {currency}{sub.amount.toLocaleString()}
-                  </div>
-                  <div className="text-[9px] font-mono text-zinc-500 uppercase">{sub.billingCycle}</div>
-                </div>
-
-                <button
-                  onClick={() => {
-                    onDeleteSubscription(sub.id);
-                    if (soundEnabled) soundFx.deleteDrop();
-                    triggerHaptic('heavy');
-                  }}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 transition"
-                  title="Supprimer du coffre"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Add Subscription Modal */}
@@ -244,7 +259,7 @@ export const VaultTab: React.FC<VaultTabProps> = ({
           <div className="w-full max-w-sm rounded-2xl horology-bezel p-5 shadow-[0_20px_60px_rgba(0,0,0,0.9)] space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/20">
               <h3 className="font-serif text-sm font-bold text-[#FFF3C4] uppercase tracking-wider">
-                Nouvel Engagement Récurrent
+                + New Recurring Vault Item
               </h3>
               <button
                 onClick={() => setIsAddModalOpen(false)}
@@ -257,20 +272,20 @@ export const VaultTab: React.FC<VaultTabProps> = ({
             <div className="space-y-3">
               <div>
                 <label className="block text-[11px] font-serif uppercase tracking-wider text-[#E5C378] mb-1">
-                  Nom du Service
+                  Service / Commitment Name
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="ex: Patek Philippe Assurance, Bloomberg Terminal..."
+                  placeholder="e.g. Netflix, iCloud, Gym, Rent..."
                   className="w-full bg-black/60 border border-[#D4AF37]/30 rounded-xl p-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37]"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-serif uppercase tracking-wider text-[#E5C378] mb-1">
-                  Montant ({currency})
+                  Amount ({currency})
                 </label>
                 <input
                   type="number"
@@ -285,23 +300,23 @@ export const VaultTab: React.FC<VaultTabProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[11px] font-serif uppercase tracking-wider text-[#E5C378] mb-1">
-                    Périodicité
+                    Billing Cycle
                   </label>
                   <select
                     value={billingCycle}
                     onChange={(e) => setBillingCycle(e.target.value as BillingCycle)}
                     className="w-full bg-[#0D120E] border border-[#D4AF37]/30 text-xs rounded-xl p-2.5 text-white focus:outline-none focus:border-[#D4AF37] font-serif"
                   >
-                    <option value="weekly">Hebdomadaire</option>
-                    <option value="monthly">Mensuel</option>
-                    <option value="quarterly">Trimestriel</option>
-                    <option value="yearly">Annuel</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="yearly">Yearly</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-serif uppercase tracking-wider text-[#E5C378] mb-1">
-                    Échéance
+                    Next Due Date
                   </label>
                   <input
                     type="date"
@@ -317,16 +332,16 @@ export const VaultTab: React.FC<VaultTabProps> = ({
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="flex-1 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-zinc-300 font-serif"
+                className="flex-1 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-zinc-300 font-serif cursor-pointer"
               >
-                Annuler
+                Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveSubscription}
-                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs shadow-md shadow-[#D4AF37]/30"
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs shadow-md shadow-[#D4AF37]/30 cursor-pointer"
               >
-                Consigner
+                Save Subscription
               </button>
             </div>
           </div>
