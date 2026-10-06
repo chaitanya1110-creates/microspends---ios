@@ -20,15 +20,18 @@ MicroSpends Icarus is a high-fidelity, sleek personal finance application design
 ## 📸 Screenshots
 
 ### 1. Unified Dashboard & Quick Entry
-![Dashboard](./Screenshot%202026-10-06%20171731.png)
+![Dashboard](<img width="501" height="893" alt="image" src="https://github.com/user-attachments/assets/a7c2ae05-e739-4462-8640-69234953165b" />
+)
 *Real-time net treasury balance and automated entry interface.*
 
 ### 2. High-Precision Analytics
-![Analytics](./Screenshot%202026-10-06%20171800.png)
+![Analytics](<img width="502" height="902" alt="image" src="https://github.com/user-attachments/assets/a8617120-b94c-42c7-813d-65f1199f2d04" />
+)
 *Spending Category Spheres and Daily Velocity Curve.*
 
 ### 3. Secure Cloud Vault
-![Cloud Vault](./Screenshot%202026-10-06%20171817.png)
+![Cloud Vault](<img width="512" height="892" alt="image" src="https://github.com/user-attachments/assets/5a19296f-4e5b-473a-8353-d293a52597bc" />
+)
 *Google Firestore authentication and bi-directional synchronization.*
 
 ## 🛠️ Technology Stack
