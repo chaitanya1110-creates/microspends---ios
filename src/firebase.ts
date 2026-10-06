@@ -3,10 +3,12 @@ import {
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   signOut as firebaseSignOut, 
   onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
   type User as FirebaseUser
 } from 'firebase/auth';
 import { 
@@ -75,6 +77,12 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication
 export const auth = getAuth(app);
+
+// Harden persistence for mobile environments
+setPersistence(auth, browserLocalPersistence).catch(err => {
+  console.error('Failed to set auth persistence:', err);
+});
+
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account'
@@ -98,8 +106,18 @@ export async function testConnection() {
 testConnection();
 
 // Authentication helpers
-export async function signInWithGoogle(): Promise<FirebaseUser> {
+export async function signInWithGoogle(): Promise<FirebaseUser | void> {
   try {
+    // Check if we should use redirect instead of popup (more reliable in iframes/mobile)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isIframe = window.self !== window.top;
+
+    if (isMobile || isIframe) {
+      console.log('Using signInWithRedirect for better compatibility...');
+      await signInWithRedirect(auth, googleProvider);
+      return; // Execution stops here as page redirects
+    }
+
     const result = await signInWithPopup(auth, googleProvider);
     if (result.user) {
       await syncUserDoc(result.user);
@@ -107,33 +125,25 @@ export async function signInWithGoogle(): Promise<FirebaseUser> {
     return result.user;
   } catch (err: any) {
     console.error('Google Sign In error:', err);
-    throw err;
+    if (err.code === 'auth/popup-blocked') {
+      console.log('Popup blocked, falling back to redirect...');
+      await signInWithRedirect(auth, googleProvider);
+    } else {
+      throw err;
+    }
   }
 }
 
-export async function signInWithEmail(email: string, password: string): Promise<FirebaseUser> {
+// Handle redirect result on mount
+export async function handleAuthRedirect() {
   try {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    if (result.user) {
+    const result = await getRedirectResult(auth);
+    if (result?.user) {
       await syncUserDoc(result.user);
+      return result.user;
     }
-    return result.user;
-  } catch (err: any) {
-    console.error('Email Sign In error:', err);
-    throw err;
-  }
-}
-
-export async function signUpWithEmail(email: string, password: string): Promise<FirebaseUser> {
-  try {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    if (result.user) {
-      await syncUserDoc(result.user);
-    }
-    return result.user;
-  } catch (err: any) {
-    console.error('Email Sign Up error:', err);
-    throw err;
+  } catch (err) {
+    console.error('Error handling auth redirect:', err);
   }
 }
 
@@ -163,7 +173,7 @@ export async function syncUserDoc(user: FirebaseUser, currency?: string) {
 }
 
 // Firestore Transactions CRUD
-export async function fetchUserTransactions(userId: string): Promise<Transaction[]> {
+export async function fetchUserTransactions(userId: string): Promise<Transaction[] | null> {
   const path = `users/${userId}/transactions`;
   try {
     const colRef = collection(db, 'users', userId, 'transactions');
@@ -188,7 +198,7 @@ export async function fetchUserTransactions(userId: string): Promise<Transaction
     return items;
   } catch (err) {
     handleFirestoreError(err, OperationType.LIST, path);
-    return [];
+    return null; // Return null to indicate error, preventing destructive local overwrite
   }
 }
 
@@ -227,7 +237,7 @@ export async function deleteUserTransactionFromFirestore(userId: string, txId: s
 }
 
 // Firestore Subscriptions CRUD
-export async function fetchUserSubscriptions(userId: string): Promise<Subscription[]> {
+export async function fetchUserSubscriptions(userId: string): Promise<Subscription[] | null> {
   const path = `users/${userId}/subscriptions`;
   try {
     const colRef = collection(db, 'users', userId, 'subscriptions');
@@ -249,7 +259,7 @@ export async function fetchUserSubscriptions(userId: string): Promise<Subscripti
     return items;
   } catch (err) {
     handleFirestoreError(err, OperationType.LIST, path);
-    return [];
+    return null;
   }
 }
 

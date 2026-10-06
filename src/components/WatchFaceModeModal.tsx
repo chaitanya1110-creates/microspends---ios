@@ -10,7 +10,6 @@ import {
   RotateCcw,
   Volume2,
   VolumeX,
-  Smartphone,
   ChevronRight,
   TrendingUp,
   TrendingDown
@@ -210,7 +209,7 @@ export const WatchFaceModeModal: React.FC<WatchFaceModeModalProps> = ({
                         Net Balance
                       </span>
                       <span className={`text-xs font-mono font-black ${
-                        netBalance >= 0 ? 'text-[#30D158]' : 'text-[#FF2D55]'
+                        netBalance >= 0 ? 'text-[#E5C378]' : 'text-rose-400'
                       }`}>
                         {netBalance >= 0 ? '+' : '-'}{currency}{Math.abs(netBalance).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </span>
@@ -237,12 +236,12 @@ export const WatchFaceModeModal: React.FC<WatchFaceModeModalProps> = ({
 
                       {/* Inflow Pill Complication */}
                       <div className="flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-full bg-[#30D158]/20 flex items-center justify-center text-[#30D158]">
+                        <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-[#E5C378]">
                           <ArrowUpRight className="w-3 h-3" />
                         </div>
                         <div className="flex flex-col text-right">
-                          <span className="text-[8px] font-mono uppercase text-zinc-400">Inflow</span>
-                          <span className="text-[11px] font-bold font-mono text-[#30D158] leading-none">
+                          <span className="text-[8px] font-mono uppercase text-zinc-500">Inflow</span>
+                          <span className="text-[11px] font-bold font-mono text-[#E5C378] leading-none">
                             +{currency}{totalCredited.toFixed(0)}
                           </span>
                         </div>
@@ -262,7 +261,7 @@ export const WatchFaceModeModal: React.FC<WatchFaceModeModalProps> = ({
                             {recentTxs[0].title}
                           </span>
                           <span className={`font-mono font-bold ${
-                            recentTxs[0].type === 'credit' ? 'text-[#30D158]' : 'text-[#FF2D55]'
+                            recentTxs[0].type === 'credit' ? 'text-[#E5C378]' : 'text-rose-400'
                           }`}>
                             {recentTxs[0].type === 'credit' ? '+' : '-'}{currency}{recentTxs[0].amount.toFixed(0)}
                           </span>

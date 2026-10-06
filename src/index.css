@@ -2,14 +2,15 @@
 
 @layer base {
   :root {
-    --font-serif: "Cormorant Garamond", Georgia, serif;
-    --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-cinzel: "Cinzel", serif;
+    --font-helvetica: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-serif: var(--font-helvetica);
+    --font-sans: var(--font-helvetica);
+    --font-cinzel: var(--font-helvetica);
     --font-mono: "JetBrains Mono", monospace;
   }
 
   body, html, * {
-    font-family: var(--font-sans);
+    font-family: var(--font-helvetica);
   }
 
   body {
@@ -18,6 +19,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  .font-helvetica {
+    font-family: var(--font-helvetica) !important;
   }
 
   .font-serif {
@@ -165,6 +170,7 @@ button, a, input, select, textarea {
 /* ======================================================== */
 /* Pure Optical Liquid Glass Cards (NO Blur, NO Frosting)  */
 /* ======================================================== */
+/* Liquid Glass Card (No Blur) */
 .liquid-glass-card,
 .horology-bezel,
 .card-liquid-glass {
@@ -177,6 +183,18 @@ button, a, input, select, textarea {
     inset 0 1px 1px 0 rgba(255, 255, 255, 0.25),
     inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4),
     0 14px 32px -4px rgba(0, 0, 0, 0.6);
+}
+
+/* Blur Glass Effect specifically for Footer */
+.blur-glass-footer {
+  position: relative;
+  background: rgba(10, 12, 16, 0.35) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.15),
+    0 8px 32px 0 rgba(0, 0, 0, 0.8);
 }
 
 .horology-subdial,

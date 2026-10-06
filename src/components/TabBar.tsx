@@ -26,7 +26,7 @@ export const TabBar: React.FC<TabBarProps> = ({
 
   return (
     <div className="relative w-full select-none pb-safe">
-      <div className="mx-3.5 mb-2.5 rounded-2xl liquid-glass-card border border-white/[0.1] py-1.5 px-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.9)]">
+      <div className="mx-3.5 mb-2.5 rounded-2xl blur-glass-footer border border-white/[0.1] py-1.5 px-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.9)]">
         <div className="flex items-center justify-around">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;

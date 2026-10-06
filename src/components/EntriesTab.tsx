@@ -372,27 +372,27 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
     <div className="space-y-4">
       {/* 1. Natural Language AI Input Bar & Quick Actions */}
       <div className="rounded-2xl p-4 horology-bezel shadow-[0_12px_36px_rgba(0,0,0,0.85)]">
-        <div className="flex items-center justify-between mb-2.5">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
             <span className="ruby-bearing" />
-            <span className="text-xs font-serif font-bold tracking-wider gold-leaf-text uppercase">
-              Micro-Spends Ledger · Quick Entry
+            <span className="text-[10px] font-bold tracking-widest text-[#F5D478] uppercase">
+              Quick Entry
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Bank SMS Scanner Button */}
+          <div className="flex items-center gap-1">
+            {/* 1-Tap iOS Shortcut Setup */}
             <button
               onClick={() => {
                 if (soundEnabled) soundFx.tap();
                 triggerHaptic('light');
-                setIsSmsModalOpen(true);
+                onOpenShortcutsGuide?.();
               }}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg knurled-crown text-xs text-zinc-300 hover:text-[#F5D478] transition"
-              title="Parse Bank SMS Alert"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-lg knurled-crown text-[#F5D478] transition"
+              title="1-Tap Shortcut Setup"
             >
-              <MessageSquare className="w-3 h-3 text-[#D4AF37]" />
-              <span className="font-serif text-[11px] uppercase tracking-wider">SMS Alert</span>
+              <Zap className="w-3 h-3" />
+              <span className="text-[10px] uppercase font-bold tracking-tight">Shortcut</span>
             </button>
 
             {/* Manual Form Button */}
@@ -403,11 +403,11 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 setManualDate(new Date().toISOString().split('T')[0]);
                 setIsManualModalOpen(true);
               }}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg knurled-crown text-xs text-[#F5D478] hover:border-[#D4AF37] transition"
+              className="flex items-center gap-1 px-2 py-0.5 rounded-lg knurled-crown text-zinc-400 hover:text-white transition"
               title="Manual Transaction Form"
             >
-              <Plus className="w-3 h-3 text-[#F5D478]" />
-              <span className="font-serif text-[11px] uppercase tracking-wider">+ Add Entry</span>
+              <Plus className="w-3 h-3" />
+              <span className="text-[10px] uppercase font-bold tracking-tight">Manual</span>
             </button>
           </div>
         </div>
@@ -442,7 +442,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             <button
               type="submit"
               disabled={!inputText.trim() || isParsing}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] hover:brightness-110 text-black font-serif font-bold text-xs transition disabled:opacity-40 flex items-center gap-1 shadow-md shadow-[#D4AF37]/20 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] hover:brightness-110 text-black font-sans font-bold text-xs transition disabled:opacity-40 flex items-center gap-1 shadow-md shadow-[#D4AF37]/20 cursor-pointer"
             >
               {isParsing ? (
                 <span className="animate-spin text-xs">↻</span>
@@ -483,94 +483,6 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               {sample}
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* Automatic Bank Messages Auto-Reader Card */}
-      <div className="rounded-2xl p-3.5 liquid-glass-card border border-white/[0.08] shadow-md space-y-2.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isAutoSyncActive
-                  ? 'bg-amber-400 shadow-[0_0_8px_#D4AF37] animate-pulse'
-                  : 'bg-zinc-600'
-              }`}
-            />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-zinc-100">
-                  {isAutoSyncActive ? 'Bank SMS Auto-Reader Active' : 'Bank SMS Auto-Reader Paused'}
-                </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono">
-                  Live Sync
-                </span>
-              </div>
-              <p className="text-[11px] text-zinc-400">
-                Automatically ingests debit/credit alerts from bank messages
-              </p>
-            </div>
-          </div>
-
-          {onToggleAutoSync && (
-            <button
-              onClick={() => {
-                triggerHaptic('light');
-                onToggleAutoSync();
-              }}
-              className={`px-3 py-1 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer ${
-                isAutoSyncActive
-                  ? 'bg-zinc-900 text-[#E5C378] border border-zinc-800'
-                  : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
-              }`}
-            >
-              {isAutoSyncActive ? 'Enabled' : 'Enable'}
-            </button>
-          )}
-        </div>
-
-        {/* 3 Quick Auto-Actions */}
-        <div className="grid grid-cols-3 gap-2 pt-1 border-t border-white/[0.06]">
-          {/* 1. Simulate SMS button */}
-          <button
-            type="button"
-            onClick={onTriggerSimulatedSms}
-            className="flex flex-col items-center justify-center p-2 rounded-xl liquid-glass-pill hover:border-amber-400/30 text-center group transition active:scale-95 cursor-pointer"
-            title="Inject a real incoming bank alert to test automatic ingestion"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-zinc-400 mb-1 group-hover:scale-110 transition-transform" />
-            <span className="text-[11px] font-medium text-zinc-200">Simulate SMS</span>
-            <span className="text-[9px] text-zinc-500">Test auto-read</span>
-          </button>
-
-          {/* 2. Scan Clipboard */}
-          <button
-            type="button"
-            onClick={onScanClipboardNow}
-            disabled={isScanningClipboard}
-            className="flex flex-col items-center justify-center p-2 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-center group transition disabled:opacity-50 cursor-pointer"
-            title="Auto-read copied bank SMS from clipboard"
-          >
-            {isScanningClipboard ? (
-              <span className="w-3.5 h-3.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mb-1" />
-            ) : (
-              <ClipboardCheck className="w-3.5 h-3.5 text-amber-400 mb-1 group-hover:scale-110 transition-transform" />
-            )}
-            <span className="text-[11px] font-medium text-zinc-200">Scan Clipboard</span>
-            <span className="text-[9px] text-zinc-500">1-tap auto-read</span>
-          </button>
-
-          {/* 3. iOS Shortcuts Setup */}
-          <button
-            type="button"
-            onClick={onOpenShortcutsGuide}
-            className="flex flex-col items-center justify-center p-2 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-center group transition cursor-pointer"
-            title="Configure iPhone Shortcuts to automatically push SMS"
-          >
-            <Smartphone className="w-3.5 h-3.5 text-cyan-400 mb-1 group-hover:scale-110 transition-transform" />
-            <span className="text-[11px] font-medium text-zinc-200">iOS Setup</span>
-            <span className="text-[9px] text-zinc-500">Shortcuts guide</span>
-          </button>
         </div>
       </div>
 
@@ -622,22 +534,22 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
       {/* 3. Transaction Cards List */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs px-1">
+        <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-1.5">
             <span className="ruby-bearing" />
-            <span className="font-serif font-bold text-[#E5C378] uppercase tracking-wider text-xs">
-              Transaction Ledger
+            <span className="font-bold text-[#E5C378] uppercase tracking-wider text-[10px]">
+              Ledger
             </span>
           </div>
-          <span className="text-[11px] font-mono text-[#D4AF37]/70">
-            {filteredTransactions.length} {filteredTransactions.length === 1 ? 'transaction' : 'transactions'}
+          <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-tight">
+            {filteredTransactions.length} records
           </span>
         </div>
 
         {filteredTransactions.length === 0 ? (
           <div className="text-center py-10 px-4 rounded-xl border border-dashed border-[#D4AF37]/20 bg-[#060907]/60">
             <Tag className="w-8 h-8 text-[#D4AF37]/40 mx-auto mb-2" />
-            <p className="text-xs font-serif text-zinc-300">
+            <p className="text-xs font-sans text-zinc-300">
               No transactions recorded for {onlyCurrentMonth && currentMonth ? currentMonth : 'this view'}.
             </p>
             <p className="text-[11px] font-mono text-zinc-500 mt-1">
@@ -646,7 +558,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             <button
               type="button"
               onClick={() => setIsManualModalOpen(true)}
-              className="mt-3 px-3 py-1.5 rounded-xl bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 border border-[#D4AF37]/40 text-[#F5D478] text-xs font-serif font-semibold transition"
+              className="mt-3 px-3 py-1.5 rounded-xl bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 border border-[#D4AF37]/40 text-[#F5D478] text-xs font-sans font-semibold transition"
             >
               + Add Transaction Now
             </button>
@@ -679,10 +591,10 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <h3 className="text-xs font-serif font-bold text-zinc-100 truncate">
+                      <h3 className="text-xs font-sans font-bold text-zinc-100 truncate">
                         {tx.title}
                       </h3>
-                      <span className="text-[10px] font-serif text-[#E5C378] shrink-0 font-medium">
+                      <span className="text-[10px] font-sans text-[#E5C378] shrink-0 font-medium">
                         · {tx.category}
                       </span>
                     </div>
@@ -705,7 +617,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 <div className="flex items-center gap-2.5 shrink-0">
                   <div className="text-right">
                     <div
-                      className={`text-sm font-serif font-bold tracking-tight ${
+                      className={`text-sm font-sans font-bold tracking-tight ${
                         isCredit ? 'text-[#E5C378]' : 'text-zinc-100'
                       }`}
                     >
@@ -770,7 +682,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Mic className="w-4 h-4 text-[#E5C378]" />
-                <span className="font-serif text-xs font-bold text-zinc-100 uppercase tracking-wider">
+                <span className="font-sans text-xs font-bold text-zinc-100 uppercase tracking-wider">
                   Voice Speech Input
                 </span>
               </div>
@@ -822,7 +734,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <button
                 onClick={handleApplyVoiceTranscript}
                 disabled={!voiceTranscript.trim()}
-                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-xs font-bold font-serif disabled:opacity-40 cursor-pointer"
+                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-xs font-bold font-sans disabled:opacity-40 cursor-pointer"
               >
                 Save to Ledger
               </button>
@@ -838,7 +750,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-[#E5C378]" />
-                <span className="font-serif text-xs font-bold text-zinc-100 uppercase tracking-wider">
+                <span className="font-sans text-xs font-bold text-zinc-100 uppercase tracking-wider">
                   Bank SMS Alert Scanner
                 </span>
               </div>
@@ -906,7 +818,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <button
                 onClick={handleSmsSubmit}
                 disabled={!rawSmsText.trim() || isParsingSms}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-xs font-bold font-serif disabled:opacity-40 flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-xs font-bold font-sans disabled:opacity-40 flex items-center gap-1.5 cursor-pointer"
               >
                 {isParsingSms ? (
                   <>
@@ -930,7 +842,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-sm rounded-2xl liquid-glass-card p-5 shadow-2xl space-y-3.5">
             <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/20">
-              <span className="font-serif text-sm font-bold text-[#FFF3C4] uppercase tracking-wider">
+              <span className="font-sans text-sm font-bold text-[#FFF3C4] uppercase tracking-wider">
                 + New Transaction
               </span>
               <button
@@ -968,7 +880,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] font-serif text-[#E5C378] uppercase mb-1">
+              <label className="block text-[11px] font-sans text-[#E5C378] uppercase mb-1">
                 Title / Merchant
               </label>
               <input
@@ -982,7 +894,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] font-serif text-[#E5C378] uppercase mb-1">
+              <label className="block text-[11px] font-sans text-[#E5C378] uppercase mb-1">
                 Amount ({currency})
               </label>
               <input
@@ -997,7 +909,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[11px] font-serif text-[#E5C378] uppercase mb-1">
+                <label className="block text-[11px] font-sans text-[#E5C378] uppercase mb-1">
                   Category
                 </label>
                 <select
@@ -1014,7 +926,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] font-serif text-[#E5C378] uppercase mb-1">
+                <label className="block text-[11px] font-sans text-[#E5C378] uppercase mb-1">
                   Date
                 </label>
                 <input
@@ -1027,7 +939,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] font-serif text-[#E5C378] uppercase mb-1">
+              <label className="block text-[11px] font-sans text-[#E5C378] uppercase mb-1">
                 Payment Method
               </label>
               <input
@@ -1043,7 +955,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <button
                 type="button"
                 onClick={() => setIsManualModalOpen(false)}
-                className="flex-1 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-zinc-300 font-serif"
+                className="flex-1 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-zinc-300 font-sans"
               >
                 Cancel
               </button>
@@ -1071,7 +983,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                   setManualAmount('');
                 }}
                 disabled={!manualTitle.trim() || !manualAmount}
-                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-bold text-xs font-serif shadow-md shadow-[#D4AF37]/30 disabled:opacity-40 cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-bold text-xs font-sans shadow-md shadow-[#D4AF37]/30 disabled:opacity-40 cursor-pointer"
               >
                 Save Entry
               </button>

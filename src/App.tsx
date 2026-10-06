@@ -29,7 +29,8 @@ import {
   fetchUserSubscriptions, 
   saveUserSubscriptionToFirestore, 
   deleteUserSubscriptionFromFirestore,
-  syncUserDoc
+  syncUserDoc,
+  handleAuthRedirect
 } from './firebase';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { getApiUrl } from './utils/api';
@@ -41,7 +42,6 @@ import { EntriesTab } from './components/EntriesTab';
 import { ChartsTab } from './components/ChartsTab';
 import { OracleTab } from './components/OracleTab';
 import { VaultTab } from './components/VaultTab';
-import { IpaCompilationModal } from './components/IpaCompilationModal';
 import { GamificationModal } from './components/GamificationModal';
 import { DataMigrationModal } from './components/DataMigrationModal';
 import { IosShortcutsModal } from './components/IosShortcutsModal';
@@ -81,13 +81,15 @@ export default function App() {
   } | null>(null);
 
   // Modals
-  const [isIpaModalOpen, setIsIpaModalOpen] = useState<boolean>(false);
   const [isGamificationModalOpen, setIsGamificationModalOpen] = useState<boolean>(false);
   const [isDataBackupModalOpen, setIsDataBackupModalOpen] = useState<boolean>(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState<boolean>(false);
 
   // Synchronize Firebase Auth state and cloud data
   useEffect(() => {
+    // Handle redirect result first
+    handleAuthRedirect();
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
@@ -97,20 +99,28 @@ export default function App() {
           const cloudTxs = await fetchUserTransactions(user.uid);
           const cloudSubs = await fetchUserSubscriptions(user.uid);
 
-          if (cloudTxs.length > 0) {
-            setTransactions(cloudTxs);
-          } else if (transactions.length > 0) {
-            // First time sync: push local data to Firestore
-            for (const tx of transactions) {
-              await saveUserTransactionToFirestore(user.uid, tx);
+          // Reconcile Sync: Only update local state if cloud fetch was successful (not null)
+          if (cloudTxs !== null) {
+            if (cloudTxs.length > 0) {
+              setTransactions(cloudTxs);
+            } else if (transactions.length > 0) {
+              // Cloud is verified empty, and we have local data: push local to cloud
+              console.log('Sync: Cloud empty, pushing local transactions...');
+              for (const tx of transactions) {
+                await saveUserTransactionToFirestore(user.uid, tx);
+              }
             }
           }
 
-          if (cloudSubs.length > 0) {
-            setSubscriptions(cloudSubs);
-          } else if (subscriptions.length > 0) {
-            for (const sub of subscriptions) {
-              await saveUserSubscriptionToFirestore(user.uid, sub);
+          if (cloudSubs !== null) {
+            if (cloudSubs.length > 0) {
+              setSubscriptions(cloudSubs);
+            } else if (subscriptions.length > 0) {
+              // Cloud is verified empty: push local subscriptions
+              console.log('Sync: Cloud empty, pushing local subscriptions...');
+              for (const sub of subscriptions) {
+                await saveUserSubscriptionToFirestore(user.uid, sub);
+              }
             }
           }
         } catch (err) {
@@ -169,8 +179,8 @@ export default function App() {
     try {
       const cloudTxs = await fetchUserTransactions(currentUser.uid);
       const cloudSubs = await fetchUserSubscriptions(currentUser.uid);
-      if (cloudTxs.length > 0) setTransactions(cloudTxs);
-      if (cloudSubs.length > 0) setSubscriptions(cloudSubs);
+      if (cloudTxs !== null && cloudTxs.length > 0) setTransactions(cloudTxs);
+      if (cloudSubs !== null && cloudSubs.length > 0) setSubscriptions(cloudSubs);
     } finally {
       setIsCloudSyncing(false);
     }
@@ -464,7 +474,6 @@ export default function App() {
           onNextMonth={handleNextMonth}
           onOpenGamification={() => setIsGamificationModalOpen(true)}
           onOpenDataBackup={() => setIsDataBackupModalOpen(true)}
-          onOpenIpaGuide={() => setIsIpaModalOpen(true)}
           onOpenAccountModal={() => setIsAccountModalOpen(true)}
           currentUser={currentUser}
           soundEnabled={soundEnabled}
@@ -602,12 +611,6 @@ export default function App() {
           isOpen={isShortcutsModalOpen}
           onClose={() => setIsShortcutsModalOpen(false)}
           onTestSimulation={handleTriggerSimulatedSms}
-        />
-
-        <IpaCompilationModal
-          isOpen={isIpaModalOpen}
-          onClose={() => setIsIpaModalOpen(false)}
-          soundEnabled={soundEnabled}
         />
 
         <GamificationModal

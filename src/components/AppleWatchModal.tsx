@@ -198,7 +198,7 @@ export const AppleWatchModal: React.FC<AppleWatchModalProps> = ({
 
               {/* Just Logged Overlay Alert */}
               {justLoggedItem && (
-                <div className="absolute inset-x-3 top-8 z-30 py-1.5 px-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-center font-serif font-bold text-[11px] shadow-lg animate-in slide-in-from-top-2 duration-150">
+                <div className="absolute inset-x-3 top-8 z-30 py-1.5 px-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-center font-sans font-bold text-[11px] shadow-lg animate-in slide-in-from-top-2 duration-150">
                   Logged: {justLoggedItem}
                 </div>
               )}
@@ -220,10 +220,10 @@ export const AppleWatchModal: React.FC<AppleWatchModalProps> = ({
                           setActiveStackIndex(2);
                           if (soundEnabled) soundFx.tap();
                         }}
-                        className="w-11 h-11 rounded-full bg-zinc-900 border border-emerald-500/40 flex flex-col items-center justify-center p-1 hover:border-emerald-400 transition"
+                        className="w-11 h-11 rounded-full bg-zinc-900 border border-[#D4AF37]/30 flex flex-col items-center justify-center p-1 hover:border-[#D4AF37]/60 transition"
                         title="Oracle Health Complication"
                       >
-                        <Sparkles className="w-3 h-3 text-emerald-400" />
+                        <Sparkles className="w-3 h-3 text-[#E5C378]" />
                         <span className="text-[10px] font-mono font-bold text-white leading-none mt-0.5">
                           {oracleInsight.score}
                         </span>
@@ -265,13 +265,13 @@ export const AppleWatchModal: React.FC<AppleWatchModalProps> = ({
                         />
 
                         {/* Ring 2: Budget (Exercise) */}
-                        <circle cx="56" cy="56" r="35" fill="transparent" stroke="#00E676" strokeWidth="8" opacity="0.2" />
+                        <circle cx="56" cy="56" r="35" fill="transparent" stroke="#D4D4D8" strokeWidth="8" opacity="0.2" />
                         <circle
                           cx="56"
                           cy="56"
                           r="35"
                           fill="transparent"
-                          stroke="#00E676"
+                          stroke="#D4D4D8"
                           strokeWidth="8"
                           strokeDasharray={2 * Math.PI * 35}
                           strokeDashoffset={2 * Math.PI * 35 * (1 - budgetPct)}
@@ -376,9 +376,9 @@ export const AppleWatchModal: React.FC<AppleWatchModalProps> = ({
 
                       <button
                         onClick={() => triggerQuickLog('Lunch Meal', 450, 'Food & Dining', 'Bistro')}
-                        className="p-2 rounded-2xl bg-zinc-900 hover:bg-zinc-800 border border-emerald-500/30 flex items-center gap-2 active:scale-95 transition text-left"
+                        className="p-2 rounded-2xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-500/30 flex items-center gap-2 active:scale-95 transition text-left"
                       >
-                        <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                        <div className="w-6 h-6 rounded-lg bg-zinc-500/20 text-zinc-400 flex items-center justify-center shrink-0">
                           <Utensils className="w-3.5 h-3.5" />
                         </div>
                         <div>
@@ -415,10 +415,10 @@ export const AppleWatchModal: React.FC<AppleWatchModalProps> = ({
                   <div className="flex-1 flex flex-col justify-between animate-in fade-in duration-200">
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">
+                        <span className="text-[10px] font-mono text-[#E5C378] font-bold uppercase tracking-wider">
                           Oracle Health
                         </span>
-                        <span className="text-xs font-mono font-bold text-white px-1.5 py-0.5 rounded bg-emerald-500/20">
+                        <span className="text-xs font-mono font-bold text-white px-1.5 py-0.5 rounded bg-[#D4AF37]/20">
                           {oracleInsight.grade}
                         </span>
                       </div>

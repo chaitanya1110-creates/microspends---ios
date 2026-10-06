@@ -43,7 +43,7 @@ export const WatchActivityRings: React.FC<WatchActivityRingsProps> = ({
 
   // Ring radii
   const rMove = 74;      // Red / Coral - Daily Burn
-  const rExercise = 56;  // Chartreuse Green - Budget Pace
+  const rExercise = 56;  // Platinum / Silver - Budget Pace
   const rStand = 38;     // Electric Cyan - Streak / Discipline
 
   const getCircumference = (r: number) => 2 * Math.PI * r;
@@ -130,7 +130,7 @@ export const WatchActivityRings: React.FC<WatchActivityRingsProps> = ({
               triggerHaptic('light');
             }}
             className={`px-1.5 py-0.5 rounded-lg text-[10px] font-mono transition ${
-              activeRing === 'exercise' ? 'bg-[#00E676]/30 text-[#00E676] font-bold' : 'text-zinc-500 hover:text-emerald-400'
+              activeRing === 'exercise' ? 'bg-zinc-100/30 text-zinc-100 font-bold' : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
             Pace
@@ -178,8 +178,8 @@ export const WatchActivityRings: React.FC<WatchActivityRingsProps> = ({
               </linearGradient>
 
               <linearGradient id="grad-exercise" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#00E676" />
-                <stop offset="100%" stopColor="#76FF03" />
+                <stop offset="0%" stopColor="#D4D4D8" />
+                <stop offset="100%" stopColor="#FAFAFA" />
               </linearGradient>
 
               <linearGradient id="grad-stand" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -203,7 +203,7 @@ export const WatchActivityRings: React.FC<WatchActivityRingsProps> = ({
               cy={center}
               r={rExercise}
               fill="transparent"
-              stroke="#00E676"
+              stroke="#D4D4D8"
               strokeWidth={strokeWidth}
               opacity={0.16}
             />
@@ -272,7 +272,7 @@ export const WatchActivityRings: React.FC<WatchActivityRingsProps> = ({
               <Flame className="w-5 h-5 text-[#FF2D55] animate-bounce" />
             )}
             {activeRing === 'exercise' && (
-              <Target className="w-5 h-5 text-[#00E676] animate-pulse" />
+              <Target className="w-5 h-5 text-zinc-300 animate-pulse" />
             )}
             {activeRing === 'stand' && (
               <Zap className="w-5 h-5 text-[#00F0FF] animate-pulse" />
@@ -317,12 +317,12 @@ export const WatchActivityRings: React.FC<WatchActivityRingsProps> = ({
           <div 
             onClick={() => setActiveRing(activeRing === 'exercise' ? 'all' : 'exercise')}
             className={`cursor-pointer p-2 rounded-xl transition ${
-              activeRing === 'exercise' ? 'bg-[#00E676]/15 border border-[#00E676]/30' : 'hover:bg-white/[0.04]'
+              activeRing === 'exercise' ? 'bg-white/10 border border-white/20' : 'hover:bg-white/[0.04]'
             }`}
           >
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="flex items-center gap-1.5 text-[#76FF03] font-semibold">
-                <span className="w-2 h-2 rounded-full bg-[#00E676] shadow-[0_0_6px_#00E676]" />
+              <span className="flex items-center gap-1.5 text-zinc-300 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-zinc-300 shadow-[0_0_6px_rgba(255,255,255,0.4)]" />
                 PACE
               </span>
               <span className="text-zinc-200 font-bold">

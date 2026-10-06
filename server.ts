@@ -46,36 +46,64 @@ async function startServer() {
       }
 
       if (!process.env.GEMINI_API_KEY) {
-        // Deterministic fallback if API key is not yet configured
+        console.warn("GEMINI_API_KEY missing, using local fallback");
         const parsedFallback = parseExpenseLocally(text);
         return res.json({ transaction: parsedFallback, fallback: true });
       }
 
       const ai = getAiClient();
       const currentDateContext = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
-        contents: `Parse this natural language financial entry into a structured transaction: "${text}".
+      
+      const contents = `Parse this natural language financial entry into a structured transaction: "${text}".
 Current date context: ${currentDateContext}.
 Classify category strictly into one of: 'Food & Dining', 'Groceries', 'Transportation', 'Shopping & Treasury', 'Health & Wellness', 'Bills & Utilities', 'Entertainment', 'Income & Salary', 'Other'.
-Classify type as 'debit' (outflow/expense) or 'credit' (inflow/income).`,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              title: { type: Type.STRING, description: "Clean title e.g. Starbucks, Uber, Salary" },
-              amount: { type: Type.NUMBER, description: "Positive numeric monetary amount" },
-              type: { type: Type.STRING, description: "'debit' for expense/outflow or 'credit' for income/inflow" },
-              category: { type: Type.STRING, description: "Category name" },
-              merchant: { type: Type.STRING, description: "Merchant or payee name" },
-              note: { type: Type.STRING, description: "Brief description or note" },
-              paymentMethod: { type: Type.STRING, description: "UPI, Apple Pay, Card, Cash, Bank Transfer" },
+Classify type as 'debit' (outflow/expense) or 'credit' (inflow/income).`;
+
+      let response;
+      try {
+        response = await ai.models.generateContent({
+          model: "gemini-3.8-flash",
+          contents,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                amount: { type: Type.NUMBER },
+                type: { type: Type.STRING },
+                category: { type: Type.STRING },
+                merchant: { type: Type.STRING },
+                note: { type: Type.STRING },
+                paymentMethod: { type: Type.STRING },
+              },
+              required: ["title", "amount", "type", "category"],
             },
-            required: ["title", "amount", "type", "category"],
           },
-        },
-      });
+        });
+      } catch (err) {
+        console.error("Gemini 3.8-flash failed, trying 1.5-flash fallback...", err);
+        response = await ai.models.generateContent({
+          model: "gemini-1.5-flash",
+          contents,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                amount: { type: Type.NUMBER },
+                type: { type: Type.STRING },
+                category: { type: Type.STRING },
+                merchant: { type: Type.STRING },
+                note: { type: Type.STRING },
+                paymentMethod: { type: Type.STRING },
+              },
+              required: ["title", "amount", "type", "category"],
+            },
+          },
+        });
+      }
 
       const parsed = JSON.parse(response.text?.trim() || "{}");
       return res.json({
@@ -91,16 +119,14 @@ Classify type as 'debit' (outflow/expense) or 'credit' (inflow/income).`,
         },
       });
     } catch (err: any) {
-      console.error("Gemini parse-expense error:", err);
-      // Fallback locally on network/API failure
+      console.error("Gemini parse-expense fatal error:", err);
       const fallback = parseExpenseLocally(req.body?.text || "");
-      return res.json({ transaction: fallback, fallback: true });
+      return res.json({ transaction: fallback, fallback: true, error: err.message });
     }
   });
 
   // Reusable Bank SMS Parser with Privacy Sanitization
   async function parseSmsTextToTx(rawSms: string) {
-    // Strip sensitive numbers like 16-digit cards, OTPs, or phone numbers
     const sanitized = rawSms
       .replace(/\b\d{4,6}\b/g, "[OTP]")
       .replace(/\b\d{12,19}\b/g, "[ACCT_CARD]");
@@ -111,28 +137,54 @@ Classify type as 'debit' (outflow/expense) or 'credit' (inflow/income).`,
 
     try {
       const ai = getAiClient();
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
-        contents: `Parse this bank transaction alert / SMS notification into structured transaction data:
+      const contents = `Parse this bank transaction alert / SMS notification into structured transaction data:
 "${sanitized}"
 Determine if it is a debit (spent, paid, withdrawn, debited) or credit (received, deposited, credited, salary).
-Extract exact numeric amount, merchant name, and category ('Food & Dining', 'Groceries', 'Transportation', 'Shopping & Treasury', 'Health & Wellness', 'Bills & Utilities', 'Entertainment', 'Income & Salary', 'Other').`,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              title: { type: Type.STRING },
-              amount: { type: Type.NUMBER },
-              type: { type: Type.STRING },
-              category: { type: Type.STRING },
-              merchant: { type: Type.STRING },
-              paymentMethod: { type: Type.STRING },
+Extract exact numeric amount, merchant name, and category ('Food & Dining', 'Groceries', 'Transportation', 'Shopping & Treasury', 'Health & Wellness', 'Bills & Utilities', 'Entertainment', 'Income & Salary', 'Other').`;
+
+      let response;
+      try {
+        response = await ai.models.generateContent({
+          model: "gemini-3.8-flash",
+          contents,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                amount: { type: Type.NUMBER },
+                type: { type: Type.STRING },
+                category: { type: Type.STRING },
+                merchant: { type: Type.STRING },
+                paymentMethod: { type: Type.STRING },
+              },
+              required: ["title", "amount", "type", "category"],
             },
-            required: ["title", "amount", "type", "category"],
           },
-        },
-      });
+        });
+      } catch (err) {
+        console.error("Gemini 3.8-flash SMS parser failed, trying 1.5-flash...", err);
+        response = await ai.models.generateContent({
+          model: "gemini-1.5-flash",
+          contents,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                amount: { type: Type.NUMBER },
+                type: { type: Type.STRING },
+                category: { type: Type.STRING },
+                merchant: { type: Type.STRING },
+                paymentMethod: { type: Type.STRING },
+              },
+              required: ["title", "amount", "type", "category"],
+            },
+          },
+        });
+      }
 
       const parsed = JSON.parse(response.text?.trim() || "{}");
       return {
@@ -146,7 +198,7 @@ Extract exact numeric amount, merchant name, and category ('Food & Dining', 'Gro
         date: new Date().toISOString().split("T")[0],
       };
     } catch (err) {
-      console.error("Gemini parseSmsTextToTx error, falling back to local:", err);
+      console.error("Gemini parseSmsTextToTx fatal error, falling back to local:", err);
       return parseExpenseLocally(sanitized);
     }
   }
@@ -220,6 +272,158 @@ Extract exact numeric amount, merchant name, and category ('Food & Dining', 'Gro
     }
   });
 
+  // Download pre-configured Apple Shortcut file (.shortcut)
+  app.get("/api/shortcut/download", (req: Request, res: Response) => {
+    const host = req.get("host") || "localhost:3000";
+    const protocol = req.protocol === "https" || req.get("x-forwarded-proto") === "https" ? "https" : "http";
+    const webhookUrl = `${protocol}://${host}/api/sms/incoming`;
+
+    const shortcutPlist = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>WFWorkflowActions</key>
+	<array>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.comment</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>WFCommentActionText</key>
+				<string>Automatically pushes incoming banking SMS to micro-spends ~ icarus edition.</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>is.workflow.actions.downloadurl</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>ShowHeaders</key>
+				<true/>
+				<key>WFHTTPBodyType</key>
+				<string>JSON</string>
+				<key>WFHTTPHeaders</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>WFDictionaryFieldValueItems</key>
+						<array>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>Content-Type</string>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+								<key>WFValue</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>application/json</string>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+							</dict>
+						</array>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFDictionaryFieldValue</string>
+				</dict>
+				<key>WFHTTPMethod</key>
+				<string>POST</string>
+				<key>WFJSONValues</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>WFDictionaryFieldValueItems</key>
+						<array>
+							<dict>
+								<key>WFItemType</key>
+								<integer>0</integer>
+								<key>WFKey</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>string</key>
+										<string>message</string>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+								<key>WFValue</key>
+								<dict>
+									<key>Value</key>
+									<dict>
+										<key>attachmentsByRange</key>
+										<dict>
+											<key>{0, 1}</key>
+											<dict>
+												<key>Type</key>
+												<string>ExtensionInput</string>
+											</dict>
+										</dict>
+										<key>string</key>
+										<string>&#xFFFC;</string>
+									</dict>
+									<key>WFSerializationType</key>
+									<string>WFTextTokenString</string>
+								</dict>
+							</dict>
+						</array>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFDictionaryFieldValue</string>
+				</dict>
+				<key>WFURL</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>string</key>
+						<string>${webhookUrl}</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenString</string>
+				</dict>
+			</dict>
+		</dict>
+	</array>
+	<key>WFWorkflowClientVersion</key>
+	<string>2200.0.4</string>
+	<key>WFWorkflowIcon</key>
+	<dict>
+		<key>WFWorkflowIconGlyphNumber</key>
+		<integer>59781</integer>
+		<key>WFWorkflowIconStartColor</key>
+		<integer>4282601983</integer>
+	</dict>
+	<key>WFWorkflowInputContentItemClasses</key>
+	<array>
+		<string>WFStringContentItem</string>
+	</array>
+	<key>WFWorkflowMinimumClientVersion</key>
+	<integer>900</integer>
+	<key>WFWorkflowTypes</key>
+	<array>
+		<string>NCWidget</string>
+		<string>Watch</string>
+		<string>ActionExtension</string>
+	</array>
+</dict>
+</plist>`;
+
+    res.setHeader("Content-Type", "application/x-apple-shortcut");
+    res.setHeader("Content-Disposition", 'attachment; filename="MicroSpends_Auto_SMS.shortcut"');
+    return res.send(shortcutPlist);
+  });
+
   // Poll for pending automated incoming messages
   app.get("/api/sms/pending", (req: Request, res: Response) => {
     const pending = incomingAlerts.filter((a) => !a.processed);
@@ -273,105 +477,6 @@ Extract exact numeric amount, merchant name, and category ('Food & Dining', 'Gro
       return res.json({ success: true, alert: alertItem });
     } catch (err: any) {
       return res.status(500).json({ error: "Failed to simulate bank alert" });
-    }
-  });
-
-  // 3. Delphic Oracle AI Financial Advisor
-  app.post("/api/gemini/advisor", async (req: Request, res: Response) => {
-    try {
-      const { userQuery, financialContext } = req.body;
-
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json({
-          score: 88,
-          grade: "A",
-          headline: "Strong Financial Equilibrium",
-          summary:
-            "Your net savings rate is positive with steady cash flow. The primary discretionary leak detected is Dining & Food, which accounts for ~34% of your total debits.",
-          leakageBreakdown: {
-            discretionary: 72,
-            subscriptions: 85,
-            dining: 64,
-            variance: 90,
-            discipline: 88,
-          },
-          recommendations: [
-            "Trim weekend takeout dining by 15% to redirect ₹3,500 / $45 to high-yield reserve.",
-            "Consolidate overlapping streaming subscriptions in your Vault.",
-            "Set a daily micro-budget cap to preserve your 7-day streak.",
-          ],
-          actionItems: [
-            "Review Vault subscriptions renewal within 7 days",
-            "Cap dining out to twice weekly",
-            "Lock in 20% savings buffer before discretionary spends",
-          ],
-        });
-      }
-
-      const ai = getAiClient();
-      const currentDateStr = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric", day: "numeric" });
-      const prompt = `You are the AI Financial Auditor of micro-spends ~ icarus edition, an ultra-clean personal finance advisor.
-User Query: "${userQuery || "Perform a financial audit and evaluate spending efficiency."}"
-Current Date Context: ${currentDateStr}
-
-User Financial Context:
-${JSON.stringify(financialContext, null, 2)}
-
-Instructions:
-1. Respond STRICTLY in English only. Do NOT use French or any other language.
-2. Provide a clean, minimal, non-cliché financial intelligence assessment.
-3. Score from 0 to 100 representing financial health.
-4. Assign an academic grade: 'A+', 'A', 'B', 'C', or 'D'.
-5. Calculate leakage indices (0-100 where higher is healthier) for:
-- discretionary (control over non-essentials)
-- subscriptions (burn rate efficiency)
-- dining (dining out control)
-- variance (consistency of daily spend)
-- discipline (adherence to budget)
-6. Provide 3 concise, high-impact tactical recommendations and 3 direct action items.`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              score: { type: Type.INTEGER, description: "0 to 100 health score" },
-              grade: { type: Type.STRING, description: "Grade e.g. A+, A, B, C" },
-              headline: { type: Type.STRING, description: "Short authoritative summary line" },
-              summary: { type: Type.STRING, description: "Concise paragraph analysis" },
-              leakageBreakdown: {
-                type: Type.OBJECT,
-                properties: {
-                  discretionary: { type: Type.INTEGER },
-                  subscriptions: { type: Type.INTEGER },
-                  dining: { type: Type.INTEGER },
-                  variance: { type: Type.INTEGER },
-                  discipline: { type: Type.INTEGER },
-                },
-                required: ["discretionary", "subscriptions", "dining", "variance", "discipline"],
-              },
-              recommendations: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-              actionItems: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-            },
-            required: ["score", "grade", "headline", "summary", "leakageBreakdown", "recommendations", "actionItems"],
-          },
-        },
-      });
-
-      const parsed = JSON.parse(response.text?.trim() || "{}");
-      return res.json(parsed);
-    } catch (err: any) {
-      console.error("Gemini advisor error:", err);
-      return res.status(500).json({ error: "Failed to generate AI advice", details: err?.message });
     }
   });
 

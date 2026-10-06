@@ -40,7 +40,7 @@ export const GamificationModal: React.FC<GamificationModalProps> = ({
         <div className="flex items-center justify-between pb-2 border-b border-white/[0.1]">
           <div className="flex items-center gap-2">
             <Trophy className="w-4 h-4 text-[#E5C378]" />
-            <h3 className="font-serif text-xs font-bold text-zinc-100 uppercase tracking-wider">
+            <h3 className="font-sans text-xs font-bold text-zinc-100 uppercase tracking-wider">
               Icarus Rank & Milestones
             </h3>
           </div>
@@ -54,7 +54,7 @@ export const GamificationModal: React.FC<GamificationModalProps> = ({
           <span className="text-[10px] font-mono tracking-widest text-[#E5C378] uppercase">
             LEVEL {gamification.level}
           </span>
-          <h2 className="font-serif text-base font-bold text-zinc-100 mt-0.5">
+          <h2 className="font-sans text-base font-bold text-zinc-100 mt-0.5">
             {gamification.levelTitle}
           </h2>
 
@@ -75,7 +75,7 @@ export const GamificationModal: React.FC<GamificationModalProps> = ({
         {/* Streak Stats */}
         <div className="grid grid-cols-2 gap-2 text-center">
           <div className="p-3 rounded-xl bg-black/50 border border-white/[0.1]">
-            <div className="flex items-center justify-center gap-1 text-[#E5C378] text-xs font-serif font-bold">
+            <div className="flex items-center justify-center gap-1 text-[#E5C378] text-xs font-sans font-bold">
               <Flame className="w-4 h-4 text-[#E5C378] fill-[#E5C378]" />
               <span>Active Streak</span>
             </div>
@@ -86,7 +86,7 @@ export const GamificationModal: React.FC<GamificationModalProps> = ({
           </div>
 
           <div className="p-3 rounded-xl bg-black/50 border border-white/[0.1]">
-            <div className="flex items-center justify-center gap-1 text-zinc-300 text-xs font-serif font-bold">
+            <div className="flex items-center justify-center gap-1 text-zinc-300 text-xs font-sans font-bold">
               <Award className="w-4 h-4 text-[#E5C378]" />
               <span>Max Record</span>
             </div>
@@ -99,7 +99,7 @@ export const GamificationModal: React.FC<GamificationModalProps> = ({
 
         {/* Achievement Badges */}
         <div className="space-y-2">
-          <div className="text-[11px] font-serif font-bold text-zinc-400 uppercase tracking-wider">
+          <div className="text-[11px] font-sans font-bold text-zinc-400 uppercase tracking-wider">
             Achievement Badges
           </div>
 

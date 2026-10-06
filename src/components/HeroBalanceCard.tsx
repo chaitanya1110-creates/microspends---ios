@@ -62,7 +62,7 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
         <div className="relative z-10 flex items-center justify-between pb-2 border-b border-white/[0.08]">
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]/60" />
-            <span className="font-serif text-[10px] tracking-wider text-zinc-400 uppercase font-semibold">
+            <span className="font-sans text-[10px] tracking-wider text-zinc-400 uppercase font-semibold">
               {currentMonth ? `${currentMonth.toUpperCase()} LEDGER` : 'BALANCE'}
             </span>
           </div>
@@ -81,17 +81,17 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
         </div>
 
         {/* Balance Display (Reduced size for clean aesthetic) */}
-        <div className="relative z-10 my-3 text-center">
-          <p className="text-[9px] uppercase font-mono tracking-widest text-zinc-500">
+        <div className="relative z-10 my-2 text-center">
+          <p className="text-[8px] uppercase font-mono tracking-[0.2em] text-zinc-500">
             NET TREASURY BALANCE
           </p>
 
           <div className="mt-0.5 flex items-baseline justify-center gap-0.5">
-            <span className="font-serif text-xl font-normal text-zinc-400">
+            <span className="font-sans text-lg font-normal text-zinc-400">
               {netBalance >= 0 ? '+' : '-'}
               {currency}
             </span>
-            <span className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#E5C378]">
+            <span className="font-sans text-xl sm:text-2xl font-bold tracking-tight text-[#E5C378]">
               {formattedBalance}
             </span>
           </div>
@@ -112,7 +112,7 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
               </div>
               <div className="min-w-0">
                 <span className="block text-[8px] text-zinc-500 uppercase font-mono leading-none">Credited</span>
-                <span className="text-xs font-serif font-bold text-zinc-300 truncate block mt-0.5">
+                <span className="text-xs font-sans font-bold text-zinc-300 truncate block mt-0.5">
                   +{currency}{Math.round(totalCredited).toLocaleString()}
                 </span>
               </div>
@@ -139,7 +139,7 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
               </div>
               <div className="min-w-0">
                 <span className="block text-[8px] text-zinc-500 uppercase font-mono leading-none">Debited</span>
-                <span className="text-xs font-serif font-bold text-zinc-300 truncate block mt-0.5">
+                <span className="text-xs font-sans font-bold text-zinc-300 truncate block mt-0.5">
                   -{currency}{Math.round(totalDebited).toLocaleString()}
                 </span>
               </div>

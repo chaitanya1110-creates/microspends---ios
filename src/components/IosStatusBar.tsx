@@ -55,9 +55,9 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
       {/* Simulated Swiss Chronometer System Header */}
       <div className="hidden sm:flex max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto px-5 pt-2 pb-0.5 items-center justify-between text-xs text-zinc-400">
         <div className="flex items-center gap-2">
-          <span className="font-serif text-[13px] tracking-widest text-[#F5D478] uppercase">CHRONOMETER</span>
-          <span className="text-[10px] text-zinc-500">·</span>
-          <span className="font-mono text-zinc-300 text-[11px]">{timeStr}</span>
+          <span className="font-sans text-[10px] tracking-widest text-[#F5D478] uppercase font-bold">Chronometer</span>
+          <span className="text-[9px] text-zinc-500">·</span>
+          <span className="font-mono text-zinc-400 text-[9px]">{timeStr}</span>
         </div>
         
         <div className="flex items-center gap-2 text-zinc-400">
@@ -85,7 +85,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
             title="Imperial Treasury Hallmarks & Achievements"
           >
             <div className="w-9 h-9 rounded-xl bg-gradient-to-b from-[#1E231C] to-[#0A0D0B] border border-[#D4AF37]/40 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,235,170,0.3),0_2px_8px_rgba(0,0,0,0.8)] overflow-hidden relative">
-              <span className="absolute inset-0 flex items-center justify-center font-serif font-bold text-base text-[#F5D478] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] select-none">
+              <span className="absolute inset-0 flex items-center justify-center font-sans font-bold text-base text-[#F5D478] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] select-none">
                 IC
               </span>
               <img 
@@ -102,16 +102,16 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
           </button>
 
           <div>
-            <div className="flex items-center gap-1.5">
-              <h1 className="text-xs sm:text-sm font-serif font-bold tracking-wider text-zinc-100 uppercase">
+            <div className="flex items-center gap-1">
+              <h1 className="text-[10px] font-sans font-bold tracking-tight text-zinc-100 uppercase">
                 micro-spends
               </h1>
-              <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-[#D4AF37]/10 border border-[#D4AF37]/30 font-mono text-[#F5D478] tracking-widest font-semibold uppercase">
-                icarus edition
+              <span className="text-[7px] px-1 py-0.5 rounded-sm bg-[#D4AF37]/10 border border-[#D4AF37]/25 font-sans text-[#F5D478] tracking-widest font-bold uppercase">
+                icarus
               </span>
             </div>
-            <p className="text-[9px] tracking-widest uppercase text-zinc-500 font-mono">
-              PRECISION LEDGER · REAL SPENDS
+            <p className="text-[7px] tracking-widest uppercase text-zinc-500 font-sans font-medium">
+              Precision Ledger
             </p>
           </div>
         </div>
@@ -126,7 +126,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
               triggerHaptic('light');
               onToggleCurrency();
             }}
-            className="w-8 h-8 rounded-xl knurled-crown text-[#F5D478] text-xs font-serif font-bold transition flex items-center justify-center active:scale-90"
+            className="w-8 h-8 rounded-xl knurled-crown text-[#F5D478] text-xs font-sans font-bold transition flex items-center justify-center active:scale-90"
             title="Toggle Currency Standard"
             aria-label="Toggle Currency Standard"
           >
@@ -183,7 +183,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
                   className="w-full h-full object-cover rounded-xl"
                 />
               ) : currentUser ? (
-                <div className="w-full h-full flex items-center justify-center bg-[#D4AF37]/20 text-[#F5D478] font-serif font-bold text-xs">
+                <div className="w-full h-full flex items-center justify-center bg-[#D4AF37]/20 text-[#F5D478] font-sans font-bold text-xs">
                   {(currentUser.displayName || currentUser.email || 'G')[0].toUpperCase()}
                 </div>
               ) : (
@@ -195,22 +195,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
             </button>
           )}
 
-          {/* iOS Native IPA Guide */}
-          {onOpenIpaGuide && (
-            <button
-              id="ipa-guide-btn"
-              onClick={() => {
-                if (soundEnabled) soundFx.tap();
-                triggerHaptic('light');
-                onOpenIpaGuide();
-              }}
-              className="w-8 h-8 rounded-xl knurled-crown text-zinc-300 hover:text-amber-300 transition flex items-center justify-center active:scale-90"
-              title="iOS IPA Native Sideload Guide"
-              aria-label="iOS IPA Guide"
-            >
-              <Smartphone className="w-3.5 h-3.5 text-[#D4AF37]/90" />
-            </button>
-          )}
+          {/* iOS Shortcuts Guide */}
         </div>
       </div>
 
@@ -222,18 +207,17 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
             triggerHaptic('light');
             onPrevMonth();
           }}
-          className="py-1 px-2.5 rounded-lg text-zinc-400 hover:text-[#F5D478] hover:bg-[#D4AF37]/10 transition flex items-center gap-1 active:scale-95 font-serif text-xs uppercase tracking-wider"
+          className="py-1 px-2 rounded-lg text-zinc-400 hover:text-[#F5D478] transition flex items-center gap-1 active:scale-95 font-sans text-[9px] font-bold uppercase tracking-wider"
           aria-label="Previous calendar cycle"
         >
-          <ChevronLeft className="w-3.5 h-3.5 text-[#D4AF37]" />
+          <ChevronLeft className="w-3 h-3 text-[#D4AF37]" />
           <span>Prev</span>
         </button>
 
-        {/* Engine-Turned Date Complication Aperture */}
         <div className="relative group">
-          <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-b from-[#121513] to-[#060807] border border-[#D4AF37]/35 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_1px_1px_rgba(255,235,170,0.1)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-[0_0_6px_#D4AF37]" />
-            <span className="font-serif text-[13px] font-semibold tracking-wider text-[#FFF3C4] uppercase">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gradient-to-b from-[#121513] to-[#060807] border border-[#D4AF37]/35 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
+            <span className="w-1 h-1 rounded-full bg-[#D4AF37] shadow-[0_0_6px_#D4AF37]" />
+            <span className="font-sans text-[10px] font-bold tracking-wider text-[#FFF3C4] uppercase">
               {currentMonth}
             </span>
           </div>
@@ -245,11 +229,11 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
             triggerHaptic('light');
             onNextMonth();
           }}
-          className="py-1 px-2.5 rounded-lg text-zinc-400 hover:text-[#F5D478] hover:bg-[#D4AF37]/10 transition flex items-center gap-1 active:scale-95 font-serif text-xs uppercase tracking-wider"
+          className="py-1 px-2 rounded-lg text-zinc-400 hover:text-[#F5D478] transition flex items-center gap-1 active:scale-95 font-sans text-[9px] font-bold uppercase tracking-wider"
           aria-label="Next calendar cycle"
         >
           <span>Next</span>
-          <ChevronRight className="w-3.5 h-3.5 text-[#D4AF37]" />
+          <ChevronRight className="w-3 h-3 text-[#D4AF37]" />
         </button>
       </div>
     </header>

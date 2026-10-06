@@ -64,7 +64,7 @@ export const DataMigrationModal: React.FC<DataMigrationModalProps> = ({
         <div className="flex items-center justify-between pb-2 border-b border-white/[0.1]">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#E5C378]" />
-            <h3 className="font-serif text-xs font-bold text-zinc-100 uppercase tracking-wider">
+            <h3 className="font-sans text-xs font-bold text-zinc-100 uppercase tracking-wider">
               Data Migration Manager
             </h3>
           </div>
@@ -80,13 +80,13 @@ export const DataMigrationModal: React.FC<DataMigrationModalProps> = ({
         <div className="space-y-3">
           {/* Export JSON */}
           <div className="p-3.5 rounded-xl bg-black/50 border border-white/[0.1] space-y-2">
-            <span className="text-xs font-bold text-zinc-100 font-serif">Export Backup</span>
+            <span className="text-xs font-bold text-zinc-100 font-sans">Export Backup</span>
             <p className="text-[11px] text-zinc-400">
               Download all transactions, subscriptions, and AI insights as a clean JSON file.
             </p>
             <button
               onClick={handleExport}
-              className="w-full py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-xs font-serif font-bold transition flex items-center justify-center gap-1.5"
+              className="w-full py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-xs font-sans font-bold transition flex items-center justify-center gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download JSON Backup</span>
@@ -95,12 +95,12 @@ export const DataMigrationModal: React.FC<DataMigrationModalProps> = ({
 
           {/* Import JSON */}
           <div className="p-3.5 rounded-xl bg-black/50 border border-white/[0.1] space-y-2">
-            <span className="text-xs font-bold text-zinc-100 font-serif">Restore / Import</span>
+            <span className="text-xs font-bold text-zinc-100 font-sans">Restore / Import</span>
             <p className="text-[11px] text-zinc-400">
               Restore previously saved transactions from a valid backup file.
             </p>
 
-            <label className="w-full py-2 rounded-xl knurled-crown text-zinc-200 text-xs font-serif font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
+            <label className="w-full py-2 rounded-xl knurled-crown text-zinc-200 text-xs font-sans font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
               <Upload className="w-3.5 h-3.5" />
               <span>Select Backup File (.json)</span>
               <input

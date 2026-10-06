@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, Sparkles, Smartphone, ShieldCheck, Zap, Play } from 'lucide-react';
+import { X, Copy, Check, Sparkles, Smartphone, Download, ExternalLink, Play, Zap, ArrowRight } from 'lucide-react';
 import { triggerHaptic } from '../utils/haptics';
+import { soundFx } from '../utils/audio';
 
 interface IosShortcutsModalProps {
   isOpen: boolean;
@@ -14,15 +15,41 @@ export const IosShortcutsModal: React.FC<IosShortcutsModalProps> = ({
   onTestSimulation,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [installedToast, setInstalledToast] = useState(false);
+
   const webhookUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/sms/incoming` : '/api/sms/incoming';
+  const downloadShortcutUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/shortcut/download` : '/api/shortcut/download';
+  const icloudShortcutUrl = 'https://www.icloud.com/shortcuts/88035bd089a842f1a66ff5bc4ba2b4ef';
 
   if (!isOpen) return null;
 
   const handleCopyWebhook = () => {
     triggerHaptic('light');
+    soundFx.tap();
     navigator.clipboard.writeText(webhookUrl);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleOneTapInstall = () => {
+    triggerHaptic('success');
+    soundFx.goldChime();
+    navigator.clipboard.writeText(webhookUrl);
+    setCopied(true);
+    setInstalledToast(true);
+
+    // Open iCloud Shortcut directly which opens iOS Shortcuts App
+    window.open(icloudShortcutUrl, '_blank');
+
+    setTimeout(() => {
+      setInstalledToast(false);
+    }, 4000);
+  };
+
+  const handleDownloadFile = () => {
+    triggerHaptic('light');
+    soundFx.tap();
+    window.location.href = downloadShortcutUrl;
   };
 
   return (
@@ -31,61 +58,80 @@ export const IosShortcutsModal: React.FC<IosShortcutsModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-white/[0.06] border border-white/[0.1] flex items-center justify-center text-[#E5C378]">
+            <div className="w-8 h-8 rounded-xl bg-white/[0.06] border border-white/[0.12] flex items-center justify-center text-[#E5C378] shadow-[0_0_12px_rgba(212,175,55,0.2)]">
               <Zap className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs font-serif font-bold text-zinc-100 uppercase tracking-wider">
-                Apple Shortcuts · Auto SMS Ingest
+              <h3 className="text-xs font-sans font-bold text-zinc-100 uppercase tracking-wider">
+                1-Tap Apple Shortcut Setup
               </h3>
               <p className="text-[10px] text-zinc-400 font-mono">
-                Direct background sync on iPhone
+                Auto-read incoming bank alerts on iPhone
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg knurled-crown text-zinc-400 hover:text-white transition"
+            className="p-1.5 rounded-lg knurled-crown text-zinc-400 hover:text-white transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Direct Press-and-Play Quick Test */}
-        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.1] space-y-2.5 text-left">
+        {/* PRIMARY 1-TAP ACTION CARD */}
+        <div className="p-4 rounded-xl bg-gradient-to-b from-[#181D1A] to-[#0A0E0C] border border-[#D4AF37]/35 shadow-lg space-y-3 text-left">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-[#E5C378] font-bold text-xs font-mono uppercase">
-              <Play className="w-3.5 h-3.5 fill-[#E5C378]" />
-              <span>Direct Press & Play Sync</span>
+            <div className="flex items-center gap-1.5 text-[#E5C378] font-bold text-xs font-sans uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>1-Tap Automated Install</span>
             </div>
-            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.05] text-zinc-300 border border-white/[0.1]">
-              INSTANT
+            <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#F5D478] border border-[#D4AF37]/30">
+              ONE-TAP
             </span>
           </div>
 
-          <p className="text-[11px] text-zinc-300 leading-relaxed font-sans">
-            Tap below to trigger an instant bank transaction test payload directly into your live ledger.
+          <p className="text-xs text-zinc-200 leading-relaxed font-sans">
+            Tap below to open the Apple Shortcuts app. It automatically creates the <strong>"Ingest Bank SMS"</strong> action on your iPhone and copies your webhook.
           </p>
 
-          <button
-            type="button"
-            onClick={() => {
-              triggerHaptic('success');
-              onTestSimulation();
-              onClose();
-            }}
-            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition shadow-lg shadow-[#D4AF37]/20 cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>⚡ Test Live Bank Ingestion Now</span>
-          </button>
+          <div className="space-y-2 pt-1">
+            <button
+              type="button"
+              onClick={handleOneTapInstall}
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-sans font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition shadow-lg shadow-[#D4AF37]/25 cursor-pointer"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>⚡ Open &amp; Add in Apple Shortcuts App</span>
+              <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadFile}
+              className="w-full py-2 px-3 rounded-xl knurled-crown text-zinc-200 font-sans text-xs flex items-center justify-center gap-1.5 hover:text-white active:scale-95 transition cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Or Download Native .shortcut File</span>
+            </button>
+          </div>
+
+          {installedToast && (
+            <div className="p-2 rounded-lg bg-black/60 border border-[#D4AF37]/40 text-[#F5D478] text-[11px] font-mono flex items-center gap-1.5 animate-in fade-in">
+              <Check className="w-3.5 h-3.5 shrink-0" />
+              <span>Webhook copied! Paste when prompted in Shortcuts app.</span>
+            </div>
+          )}
         </div>
 
-        {/* Webhook URL bar */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-            Your Incoming Auto-Sync Webhook:
-          </label>
+        {/* Webhook URL bar with 1-click copy */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
+              Your Live Ingestion Webhook:
+            </label>
+            <span className="text-[9px] font-mono text-zinc-500">Auto-Generated</span>
+          </div>
+
           <div className="flex items-center gap-2">
             <input
               type="text"
@@ -95,7 +141,7 @@ export const IosShortcutsModal: React.FC<IosShortcutsModalProps> = ({
             />
             <button
               onClick={handleCopyWebhook}
-              className="px-3 py-2 rounded-xl knurled-crown text-xs font-serif text-zinc-200 flex items-center gap-1 transition active:scale-95"
+              className="px-3.5 py-2 rounded-xl knurled-crown text-xs font-sans text-zinc-200 flex items-center gap-1 transition active:scale-95 cursor-pointer"
             >
               {copied ? (
                 <>
@@ -112,23 +158,42 @@ export const IosShortcutsModal: React.FC<IosShortcutsModalProps> = ({
           </div>
         </div>
 
-        {/* Native Shortcuts 1-Click Guide */}
-        <div className="p-3 rounded-xl liquid-glass-pill space-y-2 text-left">
-          <div className="flex items-center gap-1.5 text-zinc-200 font-serif font-bold text-xs uppercase">
+        {/* 2-Step Background Automation Rule */}
+        <div className="p-3.5 rounded-xl liquid-glass-pill space-y-2 text-left">
+          <div className="flex items-center gap-1.5 text-zinc-200 font-sans font-bold text-xs uppercase">
             <Smartphone className="w-3.5 h-3.5 text-[#E5C378]" />
-            <span>2-Step iPhone Automation Setup</span>
+            <span>Enable 100% Background Execution</span>
           </div>
 
-          <div className="space-y-1.5 text-[11px] text-zinc-300 font-sans">
-            <div className="flex items-start gap-1.5">
+          <div className="space-y-2 text-[11px] text-zinc-300 font-sans">
+            <div className="flex items-start gap-2">
               <span className="w-4 h-4 rounded-full bg-white/[0.08] text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5 font-mono">1</span>
-              <span>Open iPhone <strong>Shortcuts</strong> app → <strong>Automation</strong> → <strong>+</strong> → <strong>Message</strong>. Choose "Run Immediately".</span>
+              <span>In Shortcuts app, go to <strong>Automation</strong> tab → tap <strong>+</strong> → select <strong>Message</strong>.</span>
             </div>
-            <div className="flex items-start gap-1.5">
+            <div className="flex items-start gap-2">
               <span className="w-4 h-4 rounded-full bg-white/[0.08] text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5 font-mono">2</span>
-              <span>Add Action: <strong>Get Contents of URL</strong> → Paste your webhook → Method <strong>POST</strong> → JSON body with key <code>message</code>: <strong>Shortcut Input</strong>.</span>
+              <span>Choose <strong>"Run Immediately"</strong> so iOS automatically parses banking SMS in the background with zero taps required.</span>
             </div>
           </div>
+        </div>
+
+        {/* Live Test Ingestion */}
+        <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
+          <span className="text-[11px] text-zinc-400 font-sans">
+            Verify live sync now:
+          </span>
+          <button
+            onClick={() => {
+              triggerHaptic('success');
+              soundFx.goldChime();
+              onTestSimulation();
+              onClose();
+            }}
+            className="px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-[#D4AF37]/30 text-[#F5D478] text-xs font-sans font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+          >
+            <Play className="w-3 h-3 fill-[#F5D478]" />
+            <span>⚡ Test Live SMS Push</span>
+          </button>
         </div>
       </div>
     </div>

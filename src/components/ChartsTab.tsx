@@ -233,7 +233,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
           ctx.shadowBlur = 0;
 
           ctx.fillStyle = '#FFF3C4';
-          ctx.font = 'bold 9px monospace';
+          ctx.font = 'bold 8px Helvetica Neue, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(`D${p.day}`, p.x, p.y - 7);
         }
@@ -248,11 +248,11 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
         <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15 mb-2">
           <div className="flex items-center gap-2">
             <span className="ruby-bearing" />
-            <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
+            <h3 className="font-sans text-xs font-bold text-[#E5C378] uppercase tracking-wider">
               Spending Category Spheres
             </h3>
           </div>
-          <span className="text-[10px] font-serif text-[#D4AF37]/70 uppercase tracking-widest">
+          <span className="text-[10px] font-sans text-[#D4AF37]/70 uppercase tracking-widest">
             {currentMonth}
           </span>
         </div>
@@ -260,7 +260,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
         {debitTransactions.length === 0 ? (
           <div className="py-8 text-center">
             <PieChart className="w-8 h-8 text-[#D4AF37]/30 mx-auto mb-2" />
-            <p className="text-xs font-serif text-zinc-300">No expenses recorded for {currentMonth}.</p>
+            <p className="text-xs font-sans text-zinc-300">No expenses recorded for {currentMonth}.</p>
             <p className="text-[11px] font-mono text-zinc-500 mt-1">Logged expenses will populate the visual astrolabe rings.</p>
           </div>
         ) : (
@@ -281,7 +281,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
                         className="w-2.5 h-2.5 rounded-full"
                         style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
                       />
-                      <span className="text-zinc-200 font-serif text-xs truncate max-w-[120px]">{cat.category}</span>
+                      <span className="text-zinc-200 font-sans text-xs truncate max-w-[120px]">{cat.category}</span>
                     </div>
                     <div className="flex items-center gap-2 font-mono text-[11px]">
                       <span className="text-zinc-400">{cat.percentage}%</span>
@@ -302,14 +302,14 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
         <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15 mb-2">
           <div className="flex items-center gap-2">
             <span className="ruby-bearing" />
-            <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
+            <h3 className="font-sans text-xs font-bold text-[#E5C378] uppercase tracking-wider">
               Daily Spending Curve
             </h3>
           </div>
-          <span className="text-[11px] font-serif text-[#F5D478] uppercase tracking-wider">{currentMonth}</span>
+          <span className="text-[11px] font-sans text-[#F5D478] uppercase tracking-wider">{currentMonth}</span>
         </div>
 
-        <p className="text-[11px] font-serif text-zinc-400 mb-2">
+        <p className="text-[11px] font-sans text-zinc-400 mb-2">
           Real outflow timeline showing daily velocity and peaks.
         </p>
 
@@ -322,7 +322,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
       {sortedCategories.length > 0 && (
         <div className="rounded-2xl p-4 horology-bezel shadow-xl space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/15">
-            <h3 className="font-serif text-xs font-bold text-[#E5C378] uppercase tracking-wider">
+            <h3 className="font-sans text-xs font-bold text-[#E5C378] uppercase tracking-wider">
               Total Spend Allocation
             </h3>
             <span className="text-[10px] font-mono text-zinc-400">
@@ -334,8 +334,8 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
             {sortedCategories.map((cat, idx) => (
               <div key={cat.category} className="p-2.5 rounded-xl bg-gradient-to-b from-[#101512] to-[#070A08] border border-[#D4AF37]/20">
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-zinc-200 font-serif font-medium">{cat.category}</span>
-                  <span className="font-serif text-[#F5D478] font-bold">
+                  <span className="text-zinc-200 font-sans font-medium">{cat.category}</span>
+                  <span className="font-sans text-[#F5D478] font-bold">
                     {currency}{cat.amount.toLocaleString()} ({cat.percentage}%)
                   </span>
                 </div>
