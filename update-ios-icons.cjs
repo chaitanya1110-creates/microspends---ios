@@ -31,8 +31,13 @@ function updateIosIcons() {
       return;
     }
 
+    if (!img.size) {
+      console.log('Skipping image without size:', img);
+      return;
+    }
+
     // Extract size (e.g., "20x20")
-    const sizeMatch = img.size.match(/^([\d.]+)[xX]([\d.]+)$/);
+    const sizeMatch = String(img.size).match(/^([\d.]+)[xX]([\d.]+)$/);
     if (!sizeMatch) {
       console.log('Skipping image with invalid size format:', img.size);
       return;
@@ -42,7 +47,8 @@ function updateIosIcons() {
     const baseHeight = parseFloat(sizeMatch[2]);
 
     // Extract scale (e.g., "2x" -> 2)
-    const scaleMatch = img.scale.match(/^([\d.]+)x$/);
+    const scaleStr = img.scale ? String(img.scale) : '1x';
+    const scaleMatch = scaleStr.match(/^([\d.]+)x$/);
     const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
 
     const targetWidth = Math.round(baseWidth * scale);
