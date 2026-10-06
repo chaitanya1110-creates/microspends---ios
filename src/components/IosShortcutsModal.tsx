@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, Sparkles, Smartphone, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { X, Copy, Check, Sparkles, Smartphone, ShieldCheck, Zap, Play } from 'lucide-react';
 import { triggerHaptic } from '../utils/haptics';
 
 interface IosShortcutsModalProps {
@@ -26,45 +26,64 @@ export const IosShortcutsModal: React.FC<IosShortcutsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-md rounded-2xl bg-[#030a05] border border-zinc-800 p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-in fade-in duration-200">
+      <div className="w-full max-w-md rounded-2xl liquid-glass-card p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+            <div className="w-7 h-7 rounded-lg bg-white/[0.06] border border-white/[0.1] flex items-center justify-center text-[#E5C378]">
               <Zap className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-zinc-100">
-                Automatic iOS SMS Reading
+              <h3 className="text-xs font-serif font-bold text-zinc-100 uppercase tracking-wider">
+                Apple Shortcuts · Auto SMS Ingest
               </h3>
-              <p className="text-[11px] text-zinc-400">
-                Auto-read incoming bank alerts with 0 manual pasting
+              <p className="text-[10px] text-zinc-400 font-mono">
+                Direct background sync on iPhone
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900 transition"
+            className="p-1 rounded-lg knurled-crown text-zinc-400 hover:text-white transition"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* How it works banner */}
-        <div className="p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs space-y-1.5">
-          <div className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px]">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>100% Native Apple Shortcuts Automation</span>
+        {/* Direct Press-and-Play Quick Test */}
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.1] space-y-2.5 text-left">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-[#E5C378] font-bold text-xs font-mono uppercase">
+              <Play className="w-3.5 h-3.5 fill-[#E5C378]" />
+              <span>Direct Press & Play Sync</span>
+            </div>
+            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.05] text-zinc-300 border border-white/[0.1]">
+              INSTANT
+            </span>
           </div>
-          <p className="text-zinc-400 text-[11px] leading-relaxed">
-            iOS restricts web apps from reading private SMS directly for security. By setting a 1-time Apple Shortcut automation, iOS pushes every banking SMS directly to micro-spends ~ icarus edition in real time.
+
+          <p className="text-[11px] text-zinc-300 leading-relaxed font-sans">
+            Tap below to trigger an instant bank transaction test payload directly into your live ledger.
           </p>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('success');
+              onTestSimulation();
+              onClose();
+            }}
+            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition shadow-lg shadow-[#D4AF37]/20 cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>⚡ Test Live Bank Ingestion Now</span>
+          </button>
         </div>
 
         {/* Webhook URL bar */}
         <div className="space-y-1">
-          <label className="text-[11px] font-medium text-zinc-400">
+          <label className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
             Your Incoming Auto-Sync Webhook:
           </label>
           <div className="flex items-center gap-2">
@@ -72,15 +91,15 @@ export const IosShortcutsModal: React.FC<IosShortcutsModalProps> = ({
               type="text"
               readOnly
               value={webhookUrl}
-              className="flex-1 bg-black/60 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-300 font-mono select-all focus:outline-none"
+              className="flex-1 bg-black/60 border border-white/[0.1] rounded-xl px-3 py-2 text-xs text-zinc-200 font-mono select-all focus:outline-none"
             />
             <button
               onClick={handleCopyWebhook}
-              className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-200 flex items-center gap-1 transition"
+              className="px-3 py-2 rounded-xl knurled-crown text-xs font-serif text-zinc-200 flex items-center gap-1 transition active:scale-95"
             >
               {copied ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <Check className="w-3.5 h-3.5 text-[#E5C378]" />
                   <span>Copied</span>
                 </>
               ) : (
@@ -93,61 +112,23 @@ export const IosShortcutsModal: React.FC<IosShortcutsModalProps> = ({
           </div>
         </div>
 
-        {/* 3 Steps */}
-        <div className="space-y-2.5 pt-1">
-          <h4 className="text-xs font-semibold text-zinc-300">
-            3-Step iOS Setup (Takes 60 Seconds):
-          </h4>
-
-          <div className="p-2.5 rounded-xl bg-black/40 border border-zinc-800/80 space-y-1 text-[11px]">
-            <div className="font-semibold text-zinc-200 flex items-center gap-1.5">
-              <span className="w-4 h-4 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-300">1</span>
-              <span>Open iPhone Shortcuts & Create Automation</span>
-            </div>
-            <p className="text-zinc-400 pl-5">
-              Open the built-in <strong>Shortcuts</strong> app on iOS → Tap <strong>Automation</strong> tab → Tap <strong>+</strong> (New Automation).
-            </p>
+        {/* Native Shortcuts 1-Click Guide */}
+        <div className="p-3 rounded-xl liquid-glass-pill space-y-2 text-left">
+          <div className="flex items-center gap-1.5 text-zinc-200 font-serif font-bold text-xs uppercase">
+            <Smartphone className="w-3.5 h-3.5 text-[#E5C378]" />
+            <span>2-Step iPhone Automation Setup</span>
           </div>
 
-          <div className="p-2.5 rounded-xl bg-black/40 border border-zinc-800/80 space-y-1 text-[11px]">
-            <div className="font-semibold text-zinc-200 flex items-center gap-1.5">
-              <span className="w-4 h-4 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-300">2</span>
-              <span>Choose "Message" Trigger</span>
+          <div className="space-y-1.5 text-[11px] text-zinc-300 font-sans">
+            <div className="flex items-start gap-1.5">
+              <span className="w-4 h-4 rounded-full bg-white/[0.08] text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5 font-mono">1</span>
+              <span>Open iPhone <strong>Shortcuts</strong> app → <strong>Automation</strong> → <strong>+</strong> → <strong>Message</strong>. Choose "Run Immediately".</span>
             </div>
-            <p className="text-zinc-400 pl-5">
-              Select <strong>Message</strong>. In "Message Contains", enter keywords like <code className="bg-zinc-900 px-1 py-0.5 rounded text-zinc-300">debited, credited, spent, paid, INR, Rs</code>. Choose <strong>"Run Immediately"</strong> so it runs silently in the background!
-            </p>
-          </div>
-
-          <div className="p-2.5 rounded-xl bg-black/40 border border-zinc-800/80 space-y-1 text-[11px]">
-            <div className="font-semibold text-zinc-200 flex items-center gap-1.5">
-              <span className="w-4 h-4 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-300">3</span>
-              <span>Add "Get Contents of URL"</span>
+            <div className="flex items-start gap-1.5">
+              <span className="w-4 h-4 rounded-full bg-white/[0.08] text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5 font-mono">2</span>
+              <span>Add Action: <strong>Get Contents of URL</strong> → Paste your webhook → Method <strong>POST</strong> → JSON body with key <code>message</code>: <strong>Shortcut Input</strong>.</span>
             </div>
-            <p className="text-zinc-400 pl-5">
-              Action: <strong>Get Contents of URL</strong>.
-              <br />• URL: Paste the copied Webhook URL above
-              <br />• Method: <strong>POST</strong>
-              <br />• Request Body: JSON → key <code className="bg-zinc-900 px-1 py-0.5 rounded text-zinc-300">message</code>: value <strong>Shortcut Input</strong>
-            </p>
           </div>
-        </div>
-
-        {/* Test simulation button */}
-        <div className="pt-2 border-t border-zinc-800 flex items-center justify-between">
-          <p className="text-[11px] text-zinc-400">
-            Want to test automatic ingestion now?
-          </p>
-          <button
-            onClick={() => {
-              onTestSimulation();
-              onClose();
-            }}
-            className="px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-1.5 transition"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Simulate Bank SMS</span>
-          </button>
         </div>
       </div>
     </div>

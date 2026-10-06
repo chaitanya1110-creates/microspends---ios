@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, Clock, ShieldCheck, Compass } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface HeroBalanceCardProps {
   totalCredited: number;
@@ -26,7 +26,6 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
     maximumFractionDigits: 2,
   });
 
-  // Calculate Inflow vs Outflow Complication Dial percentage
   const totalVolume = totalCredited + totalDebited;
   const inflowPercent = totalVolume > 0 ? Math.min(100, Math.round((totalCredited / totalVolume) * 100)) : 0;
   const burnPercent = totalVolume > 0 ? Math.min(100, Math.round((totalDebited / totalVolume) * 100)) : 0;
@@ -35,7 +34,7 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: x * 6, y: y * -6 });
+    setTilt({ x: x * 4, y: y * -4 });
   };
 
   const handleMouseLeave = () => {
@@ -51,139 +50,108 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
         transform: `perspective(1000px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
       }}
     >
-      {/* 18k Champagne Gold Outer Ambient Halo */}
-      <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-[#D4AF37]/20 via-[#34D399]/10 to-[#F59E0B]/20 blur-xl opacity-70 pointer-events-none" />
+      {/* Soft minimal ambient glow (No green) */}
+      <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-[#D4AF37]/10 to-zinc-900/10 blur-lg opacity-40 pointer-events-none" />
 
       {/* Haute Horlogerie Grand Bezel Chamber */}
-      <div className="relative w-full rounded-2xl horology-bezel p-5 shadow-[0_18px_50px_rgba(0,0,0,0.9)] overflow-hidden">
-        {/* Anti-Reflective Sapphire Crystal Diagonal Sheen */}
+      <div className="relative w-full rounded-2xl liquid-glass-card p-4 shadow-[0_12px_30px_rgba(0,0,0,0.85)] overflow-hidden">
+        {/* Anti-Reflective Sapphire Crystal Sheen */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.04] to-transparent pointer-events-none" />
 
-        {/* Engine-Turned Guilloché Rings Background */}
-        <div className="absolute inset-0 guilloche-rings opacity-40 pointer-events-none" />
-
-        {/* Dial Header: Calibre Specification & Month */}
-        <div className="relative z-10 flex items-center justify-between pb-2 border-b border-[#D4AF37]/15">
+        {/* Dial Header */}
+        <div className="relative z-10 flex items-center justify-between pb-2 border-b border-white/[0.08]">
           <div className="flex items-center gap-1.5">
-            <span className="ruby-bearing" />
-            <span className="font-serif text-[11px] tracking-widest text-[#E5C378] uppercase font-semibold">
-              {currentMonth ? `${currentMonth.toUpperCase()} SUMMARY` : 'REAL-TIME BALANCE'}
+            <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]/60" />
+            <span className="font-serif text-[10px] tracking-wider text-zinc-400 uppercase font-semibold">
+              {currentMonth ? `${currentMonth.toUpperCase()} LEDGER` : 'BALANCE'}
             </span>
           </div>
 
           <div
-            className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-serif tracking-wider uppercase font-semibold backdrop-blur-md ${
-              transactionCount === 0
-                ? 'bg-zinc-900/80 border-zinc-700 text-zinc-400'
-                : isPositive
-                ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-                : 'bg-rose-950/60 border-rose-500/40 text-rose-300 shadow-[0_0_10px_rgba(244,63,94,0.2)]'
-            }`}
+            className="flex items-center gap-1 px-2 py-0.5 rounded border border-white/[0.1] text-[9px] font-mono tracking-wider uppercase font-semibold bg-white/[0.03] text-zinc-300"
           >
             {transactionCount === 0 ? (
-              <span>NO DATA THIS MONTH</span>
+              <span>NO DATA</span>
             ) : isPositive ? (
-              <>
-                <TrendingUp className="w-3 h-3 text-emerald-400" />
-                <span>SOLVENT · SURPLUS</span>
-              </>
+              <span className="text-[#D4AF37]">SURPLUS</span>
             ) : (
-              <>
-                <TrendingDown className="w-3 h-3 text-rose-400" />
-                <span>DEFICIT RUN</span>
-              </>
+              <span className="text-rose-400/90">DEFICIT</span>
             )}
           </div>
         </div>
 
-        {/* Grand Balance Chronometer Dial */}
-        <div className="relative z-10 my-4 text-center">
-          <p className="text-[10px] uppercase font-serif tracking-[0.25em] text-[#D4AF37]/80">
+        {/* Balance Display (Reduced size for clean aesthetic) */}
+        <div className="relative z-10 my-3 text-center">
+          <p className="text-[9px] uppercase font-mono tracking-widest text-zinc-500">
             NET TREASURY BALANCE
           </p>
 
-          <div className="mt-1 flex items-baseline justify-center gap-1">
-            <span className="font-serif text-2xl sm:text-3xl font-normal text-[#E5C378]">
+          <div className="mt-0.5 flex items-baseline justify-center gap-0.5">
+            <span className="font-serif text-xl font-normal text-zinc-400">
               {netBalance >= 0 ? '+' : '-'}
               {currency}
             </span>
-            <span className="font-serif text-4xl sm:text-5xl font-bold tracking-tight gold-leaf-text drop-shadow-[0_2px_12px_rgba(212,175,55,0.25)]">
+            <span className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#E5C378]">
               {formattedBalance}
             </span>
           </div>
-
-          <div className="mt-1.5 flex items-center justify-center gap-2 text-[10px] font-mono text-zinc-400">
-            <span>{transactionCount} {transactionCount === 1 ? 'RECORD' : 'RECORDS'} THIS MONTH</span>
-            <span className="text-[#D4AF37]/60">·</span>
-            <span className="text-[#F5D478] font-serif tracking-wider uppercase">PERPETUAL</span>
-          </div>
         </div>
 
-        {/* Twin Horological Complications (Inflow & Outflow Sub-Dials) */}
-        <div className="relative z-10 grid grid-cols-2 gap-3 pt-3 border-t border-[#D4AF37]/15">
-          {/* Sub-Dial 1: Inflow Complication */}
-          <div className="horology-subdial rounded-xl p-3 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-[9px] font-serif uppercase tracking-widest text-[#E5C378]">
+        {/* Twin Horological Complications (No green, highly minimal) */}
+        <div className="relative z-10 grid grid-cols-2 gap-3 pt-3 border-t border-white/[0.08]">
+          {/* Sub-Dial 1: Inflow */}
+          <div className="liquid-glass-pill rounded-xl p-2.5 flex flex-col justify-between space-y-1.5">
+            <div className="flex items-center justify-between text-[8px] font-mono uppercase text-zinc-400">
               <span>Inflow Ratio</span>
-              <span className="font-mono text-emerald-400">{inflowPercent}%</span>
+              <span className="text-zinc-200">{inflowPercent}%</span>
             </div>
 
-            {/* Circular Gauge Miniature */}
-            <div className="my-1.5 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full border border-emerald-500/30 bg-emerald-950/40 flex items-center justify-center shrink-0 shadow-inner">
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded bg-white/[0.06] border border-white/[0.1] flex items-center justify-center shrink-0">
+                <TrendingUp className="w-3 h-3 text-[#E5C378]" />
               </div>
               <div className="min-w-0">
-                <span className="block text-[10px] text-zinc-400 uppercase font-mono leading-none">Credited</span>
-                <span className="text-xs sm:text-sm font-serif font-bold text-emerald-400 truncate block mt-0.5">
-                  +{currency}{totalCredited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <span className="block text-[8px] text-zinc-500 uppercase font-mono leading-none">Credited</span>
+                <span className="text-xs font-serif font-bold text-zinc-300 truncate block mt-0.5">
+                  +{currency}{Math.round(totalCredited).toLocaleString()}
                 </span>
               </div>
             </div>
 
-            {/* Micro Gold Track */}
-            <div className="w-full bg-black/60 rounded-full h-1 overflow-hidden border border-emerald-500/20">
+            <div className="w-full bg-black/40 rounded-full h-1 overflow-hidden border border-white/[0.08]">
               <div
-                className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-500"
+                className="h-full bg-zinc-300 rounded-full transition-all duration-500"
                 style={{ width: `${inflowPercent}%` }}
               />
             </div>
           </div>
 
-          {/* Sub-Dial 2: Burn Complication */}
-          <div className="horology-subdial rounded-xl p-3 flex flex-col justify-between">
-            <div className="flex items-center justify-between text-[9px] font-serif uppercase tracking-widest text-[#E5C378]">
-              <span>Burn Velocity</span>
-              <span className="font-mono text-rose-400">{burnPercent}%</span>
+          {/* Sub-Dial 2: Outflow */}
+          <div className="liquid-glass-pill rounded-xl p-2.5 flex flex-col justify-between space-y-1.5">
+            <div className="flex items-center justify-between text-[8px] font-mono uppercase text-zinc-400">
+              <span>Outflow Ratio</span>
+              <span className="text-zinc-200">{burnPercent}%</span>
             </div>
 
-            {/* Circular Gauge Miniature */}
-            <div className="my-1.5 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full border border-rose-500/30 bg-rose-950/40 flex items-center justify-center shrink-0 shadow-inner">
-                <TrendingDown className="w-4 h-4 text-rose-400" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 rounded bg-white/[0.06] border border-white/[0.1] flex items-center justify-center shrink-0">
+                <TrendingDown className="w-3 h-3 text-rose-400/80" />
               </div>
               <div className="min-w-0">
-                <span className="block text-[10px] text-zinc-400 uppercase font-mono leading-none">Debited</span>
-                <span className="text-xs sm:text-sm font-serif font-bold text-rose-400 truncate block mt-0.5">
-                  -{currency}{totalDebited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <span className="block text-[8px] text-zinc-500 uppercase font-mono leading-none">Debited</span>
+                <span className="text-xs font-serif font-bold text-zinc-300 truncate block mt-0.5">
+                  -{currency}{Math.round(totalDebited).toLocaleString()}
                 </span>
               </div>
             </div>
 
-            {/* Micro Gold Track */}
-            <div className="w-full bg-black/60 rounded-full h-1 overflow-hidden border border-rose-500/20">
+            <div className="w-full bg-black/40 rounded-full h-1 overflow-hidden border border-white/[0.08]">
               <div
-                className="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-full transition-all duration-500"
+                className="h-full bg-rose-400/60 rounded-full transition-all duration-500"
                 style={{ width: `${burnPercent}%` }}
               />
             </div>
           </div>
-        </div>
-
-        {/* Hallmark Engraving at Bottom Bezel */}
-        <div className="relative z-10 mt-3 pt-2 border-t border-[#D4AF37]/10 flex items-center justify-between text-[9px] text-[#D4AF37]/60 font-serif tracking-[0.2em] uppercase">
-          <span>MICRO-SPENDS PRECISION</span>
-          <span>ICARUS EDITION</span>
         </div>
       </div>
     </div>

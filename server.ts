@@ -310,24 +310,25 @@ Extract exact numeric amount, merchant name, and category ('Food & Dining', 'Gro
 
       const ai = getAiClient();
       const currentDateStr = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric", day: "numeric" });
-      const prompt = `You are the Delphic Oracle of MIcroSpends Icarus, an elite, Hellenic-inspired personal wealth auditor and financial strategist.
-User Query: "${userQuery || "Perform a full financial health audit and spending leakage evaluation."}"
+      const prompt = `You are the AI Financial Auditor of micro-spends ~ icarus edition, an ultra-clean personal finance advisor.
+User Query: "${userQuery || "Perform a financial audit and evaluate spending efficiency."}"
 Current Date Context: ${currentDateStr}
 
 User Financial Context:
 ${JSON.stringify(financialContext, null, 2)}
 
-Provide a sharp, elegant, non-cliché financial intelligence assessment.
-Score from 0 to 100 representing overall financial equilibrium.
-Assign an academic grade: 'A+', 'A', 'B', 'C', or 'D'.
-Calculate leakage indices (0-100 where higher is healthier/less leakage) for:
+Instructions:
+1. Respond STRICTLY in English only. Do NOT use French or any other language.
+2. Provide a clean, minimal, non-cliché financial intelligence assessment.
+3. Score from 0 to 100 representing financial health.
+4. Assign an academic grade: 'A+', 'A', 'B', 'C', or 'D'.
+5. Calculate leakage indices (0-100 where higher is healthier) for:
 - discretionary (control over non-essentials)
 - subscriptions (burn rate efficiency)
 - dining (dining out control)
 - variance (consistency of daily spend)
 - discipline (adherence to budget)
-
-Provide 3 concise, high-impact tactical recommendations and 3 direct action items.`;
+6. Provide 3 concise, high-impact tactical recommendations and 3 direct action items.`;
 
       const response = await ai.models.generateContent({
         model: "gemini-3.8-flash",

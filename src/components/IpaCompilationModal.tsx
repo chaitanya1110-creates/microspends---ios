@@ -205,20 +205,20 @@ jobs:
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-2xl bg-[#030905] border border-amber-500/30 p-4 sm:p-5 shadow-2xl space-y-4 my-auto max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3 sm:p-4 overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-2xl liquid-glass-card p-4 sm:p-5 shadow-2xl space-y-4 my-auto max-h-[92vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-amber-500/20">
+        <div className="flex items-center justify-between pb-3 border-b border-white/[0.1]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400/20 to-emerald-500/10 border border-amber-500/35 flex items-center justify-center text-amber-300 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+            <div className="w-8 h-8 rounded-xl bg-white/[0.06] border border-white/[0.12] flex items-center justify-center text-[#E5C378] shadow-[0_0_15px_rgba(212,175,55,0.2)]">
               <Smartphone className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-cinzel text-sm font-bold text-amber-200 uppercase tracking-wider">
+                <h2 className="font-serif text-sm font-bold text-zinc-100 uppercase tracking-wider">
                   Capacitor Build Flow &amp; .IPA Guide
                 </h2>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.1] text-[#E5C378] font-mono">
                   v7 Native
                 </span>
               </div>

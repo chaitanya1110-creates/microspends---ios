@@ -37,7 +37,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
 
   const ringColors = [
     '#D4AF37', // 18k Champagne Gold
-    '#34D399', // Malachite Emerald
+    '#E5C378', // Warm Gold
     '#F59E0B', // Warm Amber
     '#38BDF8', // Cyan Rhodium
     '#F43F5E', // Ruby Rose
@@ -200,7 +200,7 @@ export const ChartsTab: React.FC<ChartsTabProps> = ({
 
       const gradient = ctx.createLinearGradient(0, 0, 0, h);
       gradient.addColorStop(0, 'rgba(212, 175, 55, 0.25)');
-      gradient.addColorStop(0.5, 'rgba(52, 211, 153, 0.12)');
+      gradient.addColorStop(0.5, 'rgba(229, 195, 120, 0.1)');
       gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
       ctx.fillStyle = gradient;
       ctx.fill();

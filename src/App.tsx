@@ -46,7 +46,7 @@ import { GamificationModal } from './components/GamificationModal';
 import { DataMigrationModal } from './components/DataMigrationModal';
 import { IosShortcutsModal } from './components/IosShortcutsModal';
 import { AccountModal } from './components/AccountModal';
-import { GoldenParticlesBackground } from './components/GoldenParticlesBackground';
+import { DynamicHueBackground } from './components/DynamicHueBackground';
 import { soundFx } from './utils/audio';
 import { triggerHaptic } from './utils/haptics';
 import { MessageSquare, CheckCircle2, Sparkles, X } from 'lucide-react';
@@ -450,12 +450,12 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-[100dvh] w-full bg-[#020403] text-zinc-100 flex flex-col items-center justify-start antialiased selection:bg-amber-500/30 overflow-x-hidden">
-      {/* Flowing Golden Particles Ambient Background */}
-      <GoldenParticlesBackground />
+    <div className="relative min-h-[100dvh] w-full bg-[#030406] text-zinc-100 flex flex-col items-center justify-start antialiased selection:bg-amber-500/30 overflow-x-hidden">
+      {/* Changing Hue Dynamic Background Panel */}
+      <DynamicHueBackground />
 
-      {/* Mobile & Desktop Haute Horlogerie Console Container */}
-      <div className="w-full max-w-lg md:max-w-2xl lg:max-w-3xl min-h-[100dvh] flex flex-col bg-[#050706]/95 backdrop-blur-[3px] shadow-[0_0_90px_rgba(0,0,0,0.95)] sm:border-x sm:border-[#D4AF37]/20 border-x-0 relative z-10">
+      {/* Main App Container */}
+      <div className="w-full max-w-lg md:max-w-2xl lg:max-w-3xl min-h-[100dvh] flex flex-col bg-transparent relative z-10 sm:border-x sm:border-white/[0.08] border-x-0">
         
         {/* Persistent iOS Header & Month Selector */}
         <IosStatusBar
@@ -475,14 +475,14 @@ export default function App() {
 
         {/* Dynamic iOS Notification Toast for Auto-Captured SMS */}
         {autoSmsToast && (
-          <div className="mx-4 -mb-1 mt-1 p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/90 to-black border border-emerald-500/40 shadow-xl flex items-center justify-between animate-in slide-in-from-top-2 duration-200">
+          <div className="mx-4 -mb-1 mt-1 p-2.5 rounded-xl liquid-glass-card border border-white/[0.12] shadow-xl flex items-center justify-between animate-in slide-in-from-top-2 duration-200">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-[#E5C378] shrink-0 border border-white/10">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-emerald-400">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[#E5C378]">
                     Auto-Captured SMS
                   </span>
                   <span className="text-[10px] text-zinc-500">•</span>
@@ -490,7 +490,7 @@ export default function App() {
                 </div>
                 <div className="text-xs font-semibold text-zinc-100 flex items-center gap-1.5">
                   <span>{autoSmsToast.title}</span>
-                  <span className={autoSmsToast.type === 'credit' ? 'text-emerald-400' : 'text-rose-400'}>
+                  <span className={autoSmsToast.type === 'credit' ? 'text-[#E5C378]' : 'text-rose-400'}>
                     {autoSmsToast.type === 'credit' ? '+' : '-'}{currency}{autoSmsToast.amount.toFixed(2)}
                   </span>
                 </div>

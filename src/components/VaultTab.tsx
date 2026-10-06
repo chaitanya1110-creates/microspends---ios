@@ -126,7 +126,7 @@ export const VaultTab: React.FC<VaultTabProps> = ({
 
       {/* 2. Renewal Alarm Complication (Next 7 Days) */}
       {upcomingRenewals.length > 0 && (
-        <div className="rounded-2xl p-4 bg-gradient-to-r from-[#211709] via-[#0E1510] to-[#070B09] border border-[#D4AF37]/45 shadow-xl space-y-2.5">
+        <div className="rounded-2xl p-4 liquid-glass-card border border-white/[0.12] shadow-xl space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-[#F5D478] animate-pulse" />
@@ -255,8 +255,8 @@ export const VaultTab: React.FC<VaultTabProps> = ({
 
       {/* Add Subscription Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-sm rounded-2xl horology-bezel p-5 shadow-[0_20px_60px_rgba(0,0,0,0.9)] space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-2xl liquid-glass-card p-5 shadow-[0_20px_60px_rgba(0,0,0,0.9)] space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/20">
               <h3 className="font-serif text-sm font-bold text-[#FFF3C4] uppercase tracking-wider">
                 + New Recurring Vault Item

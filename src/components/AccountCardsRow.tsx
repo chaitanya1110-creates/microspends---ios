@@ -17,69 +17,65 @@ export const AccountCardsRow: React.FC<AccountCardsRowProps> = ({
   const creditRatio = totalDebited + totalCredited > 0 ? Math.min(100, Math.round((totalCredited / totalFlow) * 100)) : 0;
 
   return (
-    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
-      {/* 1. Debited Outflow Chamber */}
-      <div className="relative rounded-2xl horology-subdial p-3.5 shadow-lg flex flex-col justify-between overflow-hidden border border-[#D4AF37]/25 hover:border-[#D4AF37]/50 transition-colors duration-300">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-rose-500/10 to-transparent blur-xl pointer-events-none" />
-
+    <div className="grid grid-cols-2 gap-2.5 w-full">
+      {/* 1. Debited Outflow */}
+      <div className="relative rounded-xl liquid-glass-card p-3 flex flex-col justify-between overflow-hidden shadow-lg hover:border-white/[0.2] transition duration-300">
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-serif uppercase tracking-widest text-[#E5C378] font-semibold">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[9px] font-mono uppercase tracking-wider text-zinc-400">
               Total Debited
             </span>
-            <div className="w-6 h-6 rounded-lg bg-rose-950/70 border border-rose-500/40 flex items-center justify-center text-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.3)]">
-              <ArrowDownRight className="w-3.5 h-3.5" />
+            <div className="w-5 h-5 rounded bg-white/[0.06] border border-white/[0.1] flex items-center justify-center text-rose-400/90">
+              <ArrowDownRight className="w-3 h-3" />
             </div>
           </div>
 
-          <div className="text-base sm:text-lg font-serif font-bold text-rose-400 tracking-tight">
-            -{currency}{totalDebited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <div className="text-sm font-serif font-bold text-zinc-100 tracking-tight">
+            -{currency}{totalDebited.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </div>
         </div>
 
-        {/* Progress ratio indicator */}
-        <div className="mt-3">
-          <div className="flex items-center justify-between text-[9px] font-mono text-zinc-400 mb-1">
+        {/* Progress ratio */}
+        <div className="mt-2.5">
+          <div className="flex items-center justify-between text-[8px] font-mono text-zinc-400 mb-0.5">
             <span>Outflow Share</span>
-            <span className="text-rose-400 font-semibold">{debitRatio}%</span>
+            <span className="text-rose-400/90">{debitRatio}%</span>
           </div>
-          <div className="w-full h-1 bg-black/80 border border-[#D4AF37]/20 rounded-full overflow-hidden">
+          <div className="w-full h-0.5 bg-black/60 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-rose-700 via-rose-500 to-[#D4AF37] rounded-full transition-all duration-300"
+              className="h-full bg-rose-400/60 rounded-full transition-all duration-300"
               style={{ width: `${debitRatio}%` }}
             />
           </div>
         </div>
       </div>
 
-      {/* 2. Credited Reserves Chamber */}
-      <div className="relative rounded-2xl horology-subdial p-3.5 shadow-lg flex flex-col justify-between overflow-hidden border border-[#D4AF37]/25 hover:border-[#D4AF37]/50 transition-colors duration-300">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500/10 to-transparent blur-xl pointer-events-none" />
-
+      {/* 2. Credited Reserves */}
+      <div className="relative rounded-xl liquid-glass-card p-3 flex flex-col justify-between overflow-hidden shadow-lg hover:border-white/[0.2] transition duration-300">
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-serif uppercase tracking-widest text-[#E5C378] font-semibold">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[9px] font-mono uppercase tracking-wider text-zinc-400">
               Total Credited
             </span>
-            <div className="w-6 h-6 rounded-lg bg-emerald-950/70 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.3)]">
-              <ArrowUpRight className="w-3.5 h-3.5" />
+            <div className="w-5 h-5 rounded bg-white/[0.06] border border-white/[0.1] flex items-center justify-center text-[#E5C378]">
+              <ArrowUpRight className="w-3 h-3" />
             </div>
           </div>
 
-          <div className="text-base sm:text-lg font-serif font-bold text-emerald-400 tracking-tight">
-            +{currency}{totalCredited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <div className="text-sm font-serif font-bold text-zinc-100 tracking-tight">
+            +{currency}{totalCredited.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </div>
         </div>
 
-        {/* Progress ratio indicator */}
-        <div className="mt-3">
-          <div className="flex items-center justify-between text-[9px] font-mono text-zinc-400 mb-1">
+        {/* Progress ratio */}
+        <div className="mt-2.5">
+          <div className="flex items-center justify-between text-[8px] font-mono text-zinc-400 mb-0.5">
             <span>Inflow Share</span>
-            <span className="text-emerald-400 font-semibold">{creditRatio}%</span>
+            <span className="text-zinc-300">{creditRatio}%</span>
           </div>
-          <div className="w-full h-1 bg-black/80 border border-[#D4AF37]/20 rounded-full overflow-hidden">
+          <div className="w-full h-0.5 bg-black/60 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-emerald-700 via-emerald-500 to-[#D4AF37] rounded-full transition-all duration-300"
+              className="h-full bg-zinc-300 rounded-full transition-all duration-300"
               style={{ width: `${creditRatio}%` }}
             />
           </div>

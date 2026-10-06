@@ -59,12 +59,12 @@ export const DataMigrationModal: React.FC<DataMigrationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-[#030a05] border border-amber-500/30 p-5 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between pb-2 border-b border-amber-500/15">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
+      <div className="w-full max-w-sm rounded-2xl liquid-glass-card p-5 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between pb-2 border-b border-white/[0.1]">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <h3 className="font-cinzel text-xs font-bold text-amber-300 uppercase tracking-wider">
+            <ShieldCheck className="w-4 h-4 text-[#E5C378]" />
+            <h3 className="font-serif text-xs font-bold text-zinc-100 uppercase tracking-wider">
               Data Migration Manager
             </h3>
           </div>
@@ -79,14 +79,14 @@ export const DataMigrationModal: React.FC<DataMigrationModalProps> = ({
 
         <div className="space-y-3">
           {/* Export JSON */}
-          <div className="p-3.5 rounded-xl bg-black/50 border border-zinc-800 space-y-2">
-            <span className="text-xs font-bold text-zinc-100">Export Backup</span>
+          <div className="p-3.5 rounded-xl bg-black/50 border border-white/[0.1] space-y-2">
+            <span className="text-xs font-bold text-zinc-100 font-serif">Export Backup</span>
             <p className="text-[11px] text-zinc-400">
               Download all transactions, subscriptions, and AI insights as a clean JSON file.
             </p>
             <button
               onClick={handleExport}
-              className="w-full py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold transition flex items-center justify-center gap-1.5"
+              className="w-full py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-xs font-serif font-bold transition flex items-center justify-center gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download JSON Backup</span>
@@ -94,13 +94,13 @@ export const DataMigrationModal: React.FC<DataMigrationModalProps> = ({
           </div>
 
           {/* Import JSON */}
-          <div className="p-3.5 rounded-xl bg-black/50 border border-zinc-800 space-y-2">
-            <span className="text-xs font-bold text-zinc-100">Restore / Import</span>
+          <div className="p-3.5 rounded-xl bg-black/50 border border-white/[0.1] space-y-2">
+            <span className="text-xs font-bold text-zinc-100 font-serif">Restore / Import</span>
             <p className="text-[11px] text-zinc-400">
               Restore previously saved transactions from a valid backup file.
             </p>
 
-            <label className="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-mono font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
+            <label className="w-full py-2 rounded-xl knurled-crown text-zinc-200 text-xs font-serif font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
               <Upload className="w-3.5 h-3.5" />
               <span>Select Backup File (.json)</span>
               <input
@@ -112,8 +112,8 @@ export const DataMigrationModal: React.FC<DataMigrationModalProps> = ({
             </label>
 
             {importStatus === 'success' && (
-              <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px] font-mono flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5" />
+              <div className="p-2 rounded-lg bg-white/[0.06] border border-[#D4AF37]/30 text-[#F5D478] text-[11px] font-mono flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 text-[#D4AF37]" />
                 <span>Restored ledger successfully! Reloading...</span>
               </div>
             )}

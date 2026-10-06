@@ -48,7 +48,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
   }, []);
 
   return (
-    <header className="w-full bg-[#050706]/95 backdrop-blur-2xl border-b border-[#D4AF37]/20 sticky top-0 z-40 select-none pt-safe shadow-[0_8px_32px_rgba(0,0,0,0.85)]">
+    <header className="w-full bg-black/35 border-b border-white/[0.12] sticky top-0 z-40 select-none pt-safe shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
       {/* Specular 18k Gold Bezel Rim Line */}
       <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#F5D478]/50 to-transparent pointer-events-none" />
 
@@ -98,7 +98,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
               />
             </div>
             {/* Jewel indicator */}
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-black shadow-[0_0_6px_#34d399]" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 border border-black shadow-[0_0_6px_#FFF3C4]" />
           </button>
 
           <div>
@@ -156,7 +156,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
               triggerHaptic('light');
               onOpenDataBackup();
             }}
-            className="w-8 h-8 rounded-xl knurled-crown text-zinc-300 hover:text-emerald-400 transition flex items-center justify-center active:scale-90"
+            className="w-8 h-8 rounded-xl knurled-crown text-zinc-300 hover:text-[#FFF3C4] transition flex items-center justify-center active:scale-90"
             title="Treasury Archive & Ledger Migration"
             aria-label="Treasury Archive"
           >
@@ -190,7 +190,7 @@ export const IosStatusBar: React.FC<IosStatusBarProps> = ({
                 <Cloud className="w-3.5 h-3.5 text-[#D4AF37]" />
               )}
               {currentUser && (
-                <span className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 border border-black shadow-[0_0_4px_#34d399]" />
+                <span className="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-amber-400 border border-black shadow-[0_0_4px_#FFF3C4]" />
               )}
             </button>
           )}

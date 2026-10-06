@@ -11,7 +11,7 @@ import {
   Key
 } from 'lucide-react';
 import { type User as FirebaseUser } from 'firebase/auth';
-import { signInWithGoogle, signOutUser } from '../firebase';
+import { signInWithGoogle, signOutUser, signInWithEmail, signUpWithEmail } from '../firebase';
 import { soundFx } from '../utils/audio';
 import { triggerHaptic } from '../utils/haptics';
 
@@ -39,6 +39,44 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
   const [syncStatusMsg, setSyncStatusMsg] = useState<string | null>(null);
+
+  const [emailInput, setEmailInput] = useState<string>('');
+  const [passwordInput, setPasswordInput] = useState<string>('');
+  const [isSignUpMode, setIsSignUpMode] = useState<boolean>(false);
+  const [showEmailAuthForm, setShowEmailAuthForm] = useState<boolean>(false);
+
+  const handleEmailAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput || !passwordInput) return;
+    setIsSigningIn(true);
+    setAuthError(null);
+    try {
+      if (soundEnabled) soundFx.tap();
+      if (isSignUpMode) {
+        await signUpWithEmail(emailInput, passwordInput);
+        setSyncStatusMsg('Account created successfully. Real-time Firestore sync active.');
+      } else {
+        await signInWithEmail(emailInput, passwordInput);
+        setSyncStatusMsg('Signed in successfully. Real-time Firestore sync active.');
+      }
+      if (soundEnabled) soundFx.goldChime();
+      triggerHaptic('success');
+    } catch (err: any) {
+      console.error('Email Auth Error:', err);
+      if (err.code === 'auth/weak-password') {
+        setAuthError('Password must be at least 6 characters.');
+      } else if (err.code === 'auth/email-already-in-use') {
+        setAuthError('Email is already registered. Please sign in instead.');
+      } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        setAuthError('Invalid email or password. Please try again.');
+      } else {
+        setAuthError(err.message || 'Authentication failed. Please try again.');
+      }
+      if (soundEnabled) soundFx.deleteDrop();
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -104,8 +142,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md rounded-2xl horology-bezel p-6 shadow-[0_24px_64px_rgba(0,0,0,0.95)] text-zinc-100 max-h-[90vh] overflow-y-auto ios-momentum-scroll">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md rounded-2xl liquid-glass-card p-6 shadow-[0_24px_64px_rgba(0,0,0,0.95)] text-zinc-100 max-h-[90vh] overflow-y-auto ios-momentum-scroll">
         
         {/* Header */}
         <div className="flex items-center justify-between pb-3.5 border-b border-[#D4AF37]/20">
@@ -156,7 +194,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     <span className="font-serif font-bold text-sm text-white truncate">
                       {currentUser.displayName || 'Google Account Owner'}
                     </span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-mono bg-zinc-900 text-[#E5C378] border border-zinc-800">
                       SYNC ACTIVE
                     </span>
                   </div>
@@ -180,8 +218,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   <span className="text-[10px] font-serif uppercase tracking-wider text-[#E5C378] block">
                     Cloud Database
                   </span>
-                  <span className="text-base font-serif font-bold text-emerald-400 mt-1 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Firestore
+                  <span className="text-base font-serif font-bold text-zinc-300 mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#E5C378]" /> Firestore
                   </span>
                 </div>
               </div>
@@ -227,7 +265,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   Secure Cloud Storage
                 </h3>
                 <p className="text-zinc-400 text-xs mt-1 max-w-xs mx-auto font-sans leading-relaxed">
-                  Sign in with your Google account to automatically safeguard and synchronize your financial ledger across devices in real time with Google Cloud Firestore.
+                  Automatically safeguard and synchronize your financial ledger across devices in real time with Google Cloud Firestore.
                 </p>
               </div>
 
@@ -237,21 +275,100 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 </div>
               )}
 
-              <button
-                onClick={handleSignIn}
-                disabled={isSigningIn}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition shadow-lg shadow-[#D4AF37]/25 disabled:opacity-50 cursor-pointer"
-              >
-                <LogIn className="w-4 h-4" />
-                {isSigningIn ? 'Connecting...' : 'Sign in with Google'}
-              </button>
+              {!showEmailAuthForm ? (
+                <div className="space-y-2.5">
+                  <button
+                    onClick={handleSignIn}
+                    disabled={isSigningIn}
+                    className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition shadow-lg shadow-[#D4AF37]/25 disabled:opacity-50 cursor-pointer"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    {isSigningIn ? 'Connecting...' : 'Sign in with Google'}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (soundEnabled) soundFx.tap();
+                      setShowEmailAuthForm(true);
+                      setAuthError(null);
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl border border-zinc-800 bg-black/40 text-zinc-300 font-mono text-[11px] tracking-wider uppercase flex items-center justify-center gap-1.5 hover:bg-zinc-900 active:scale-95 transition"
+                  >
+                    Or Use Email & Password (iPhone Native)
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleEmailAuthSubmit} className="space-y-3.5 text-left border border-zinc-800/80 p-4 rounded-xl bg-black/50">
+                  <span className="text-[10px] font-mono text-amber-400 font-bold uppercase tracking-widest block text-center mb-1">
+                    {isSignUpMode ? 'Create New Cloud Account' : 'Sign In with Email'}
+                  </span>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono text-zinc-400 uppercase">Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. member@icarus.com"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      className="w-full px-3 py-2 border border-zinc-800 rounded-xl bg-black text-zinc-100 font-mono text-xs focus:outline-none focus:border-[#D4AF37]/50"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono text-zinc-400 uppercase">Password</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Min 6 characters"
+                      value={passwordInput}
+                      onChange={(e) => setPasswordInput(e.target.value)}
+                      className="w-full px-3 py-2 border border-zinc-800 rounded-xl bg-black text-zinc-100 font-mono text-xs focus:outline-none focus:border-[#D4AF37]/50"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSigningIn}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black font-serif font-bold text-xs hover:brightness-110 transition active:scale-95"
+                  >
+                    {isSigningIn ? 'Authenticating...' : isSignUpMode ? 'Register & Connect' : 'Sign In & Connect'}
+                  </button>
+
+                  <div className="flex items-center justify-between text-[11px] pt-1 border-t border-zinc-900 mt-2 font-mono">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (soundEnabled) soundFx.tap();
+                        setIsSignUpMode(!isSignUpMode);
+                        setAuthError(null);
+                      }}
+                      className="text-amber-400 hover:text-amber-200 transition"
+                    >
+                      {isSignUpMode ? '← Switch to Sign In' : 'Need an Account? Register →'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (soundEnabled) soundFx.tap();
+                        setShowEmailAuthForm(false);
+                        setAuthError(null);
+                      }}
+                      className="text-zinc-500 hover:text-zinc-300 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           )}
 
           {/* Sync Status Banner */}
           {syncStatusMsg && (
-            <div className="p-3 rounded-xl bg-[#0B150F] border border-[#D4AF37]/30 text-[#F5D478] text-[11px] font-serif flex items-center gap-2 animate-in fade-in duration-200">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-900 text-[#F5D478] text-[11px] font-serif flex items-center gap-2 animate-in fade-in duration-200">
+              <CheckCircle2 className="w-4 h-4 text-[#E5C378] shrink-0" />
               <span>{syncStatusMsg}</span>
             </div>
           )}

@@ -133,7 +133,7 @@ export const AppleWatchModal: React.FC<AppleWatchModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/85 backdrop-blur-md animate-in fade-in duration-200 select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/85 animate-in fade-in duration-200 select-none">
       
       {/* Outer Container with Close and Title */}
       <div className="relative flex flex-col items-center max-w-sm w-full">
@@ -191,14 +191,14 @@ export const AppleWatchModal: React.FC<AppleWatchModalProps> = ({
                   <span className="text-[9px] text-zinc-500 font-mono">:{secStr}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[9px] text-zinc-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#E5C378] shadow-[0_0_6px_#D4AF37]" />
                   <span>ICARUS</span>
                 </div>
               </div>
 
               {/* Just Logged Overlay Alert */}
               {justLoggedItem && (
-                <div className="absolute inset-x-3 top-8 z-30 py-1.5 px-2.5 rounded-xl bg-emerald-500/90 text-black text-center font-mono font-bold text-[11px] shadow-lg animate-in slide-in-from-top-2 duration-150">
+                <div className="absolute inset-x-3 top-8 z-30 py-1.5 px-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-center font-serif font-bold text-[11px] shadow-lg animate-in slide-in-from-top-2 duration-150">
                   Logged: {justLoggedItem}
                 </div>
               )}

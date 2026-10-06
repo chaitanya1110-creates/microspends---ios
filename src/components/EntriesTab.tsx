@@ -282,9 +282,9 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
         ctx.lineTo(x, y);
       }
 
-      ctx.strokeStyle = isListening ? '#10B981' : '#D4AF37';
+      ctx.strokeStyle = isListening ? '#D4AF37' : '#E5C378';
       ctx.lineWidth = 2.5;
-      ctx.shadowColor = isListening ? '#10B981' : '#D4AF37';
+      ctx.shadowColor = isListening ? '#D4AF37' : '#E5C378';
       ctx.shadowBlur = 8;
       ctx.stroke();
       ctx.shadowBlur = 0;
@@ -419,7 +419,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="e.g. 'Coffee 250 Starbucks' or 'Salary 85000 credited'..."
-            className="w-full bg-[#030604]/90 border border-[#D4AF37]/25 rounded-xl py-2.5 pl-3.5 pr-20 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37]/80 transition backdrop-blur-md shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] font-sans"
+            className="w-full bg-[#030604]/90 border border-[#D4AF37]/25 rounded-xl py-2.5 pl-3.5 pr-20 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37]/80 transition shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] font-sans"
             disabled={isParsing}
           />
 
@@ -493,7 +493,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             <span
               className={`w-2 h-2 rounded-full ${
                 isAutoSyncActive
-                  ? 'bg-emerald-400 shadow-[0_0_8px_#10B981] animate-pulse'
+                  ? 'bg-amber-400 shadow-[0_0_8px_#D4AF37] animate-pulse'
                   : 'bg-zinc-600'
               }`}
             />
@@ -502,7 +502,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 <span className="text-xs font-semibold text-zinc-100">
                   {isAutoSyncActive ? 'Bank SMS Auto-Reader Active' : 'Bank SMS Auto-Reader Paused'}
                 </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono">
+                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono">
                   Live Sync
                 </span>
               </div>
@@ -520,7 +520,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               }}
               className={`px-3 py-1 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer ${
                 isAutoSyncActive
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                  ? 'bg-zinc-900 text-[#E5C378] border border-zinc-800'
                   : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'
               }`}
             >
@@ -538,7 +538,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             className="flex flex-col items-center justify-center p-2 rounded-xl liquid-glass-pill hover:border-amber-400/30 text-center group transition active:scale-95 cursor-pointer"
             title="Inject a real incoming bank alert to test automatic ingestion"
           >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400 mb-1 group-hover:scale-110 transition-transform" />
+            <Sparkles className="w-3.5 h-3.5 text-zinc-400 mb-1 group-hover:scale-110 transition-transform" />
             <span className="text-[11px] font-medium text-zinc-200">Simulate SMS</span>
             <span className="text-[9px] text-zinc-500">Test auto-read</span>
           </button>
@@ -666,8 +666,8 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                   <div
                     className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
                       isCredit
-                        ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.2)]'
-                        : 'bg-rose-950/70 border-rose-500/30 text-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.2)]'
+                        ? 'bg-zinc-900 border-zinc-800 text-[#E5C378]'
+                        : 'bg-zinc-900 border-zinc-800 text-rose-400/90'
                     }`}
                   >
                     {isCredit ? (
@@ -706,7 +706,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                   <div className="text-right">
                     <div
                       className={`text-sm font-serif font-bold tracking-tight ${
-                        isCredit ? 'text-emerald-400' : 'text-[#F5D478]'
+                        isCredit ? 'text-[#E5C378]' : 'text-zinc-100'
                       }`}
                     >
                       {isCredit ? '+' : '-'}
@@ -765,12 +765,12 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
       {/* Voice Input Modal */}
       {isVoiceModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-[#040d06] border border-cyan-500/30 p-5 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
+          <div className="w-full max-w-sm rounded-2xl liquid-glass-card p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Mic className="w-4 h-4 text-cyan-400" />
-                <span className="font-cinzel text-xs font-bold text-cyan-300 uppercase">
+                <Mic className="w-4 h-4 text-[#E5C378]" />
+                <span className="font-serif text-xs font-bold text-zinc-100 uppercase tracking-wider">
                   Voice Speech Input
                 </span>
               </div>
@@ -783,7 +783,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
             </div>
 
             {/* Live Audio Waveform Canvas */}
-            <div className="h-20 w-full rounded-xl bg-black/60 border border-zinc-800 flex items-center justify-center overflow-hidden">
+            <div className="h-20 w-full rounded-xl bg-black/60 border border-white/[0.1] flex items-center justify-center overflow-hidden">
               <canvas
                 ref={canvasWaveRef}
                 width={320}
@@ -796,7 +796,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <p className="text-xs text-zinc-400 font-mono">
                 {isListening ? 'Listening for transaction phrase...' : 'Audio captured.'}
               </p>
-              <div className="mt-2 p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 min-h-[44px] text-xs text-amber-200 font-mono">
+              <div className="mt-2 p-2.5 rounded-lg bg-black/50 border border-white/[0.1] min-h-[44px] text-xs text-amber-200 font-mono">
                 {voiceTranscript || 'Say: "Starbucks coffee 220" or "Salary 80000"'}
               </div>
             </div>
@@ -822,7 +822,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <button
                 onClick={handleApplyVoiceTranscript}
                 disabled={!voiceTranscript.trim()}
-                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold font-mono disabled:opacity-40 cursor-pointer"
+                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-xs font-bold font-serif disabled:opacity-40 cursor-pointer"
               >
                 Save to Ledger
               </button>
@@ -833,12 +833,12 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
       {/* SMS Bank Alert Scanner Modal */}
       {isSmsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-md rounded-2xl bg-[#030a05] border border-amber-500/30 p-5 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
+          <div className="w-full max-w-md rounded-2xl liquid-glass-card p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-amber-400" />
-                <span className="font-cinzel text-xs font-bold text-amber-300 uppercase">
+                <ShieldAlert className="w-4 h-4 text-[#E5C378]" />
+                <span className="font-serif text-xs font-bold text-zinc-100 uppercase tracking-wider">
                   Bank SMS Alert Scanner
                 </span>
               </div>
@@ -850,8 +850,8 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               </button>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200 flex items-start gap-2">
-              <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.1] text-[11px] text-zinc-300 flex items-start gap-2">
+              <ShieldAlert className="w-4 h-4 text-[#E5C378] shrink-0 mt-0.5" />
               <span>
                 <strong>Privacy Sanitizer Active:</strong> Account numbers, card digits, and OTPs are automatically masked before processing.
               </span>
@@ -875,7 +875,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                       }
                     } catch (e) {}
                   }}
-                  className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] text-zinc-400 hover:text-zinc-200 font-semibold flex items-center gap-1 cursor-pointer"
                 >
                   <ClipboardCheck className="w-3 h-3" />
                   <span>Paste from Clipboard</span>
@@ -886,7 +886,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 value={rawSmsText}
                 onChange={(e) => setRawSmsText(e.target.value)}
                 placeholder="e.g. 'A/C *1234 debited by INR 350.00 at MCDONALDS on 16-MAR-26 via UPI. Bal INR 45,210.'"
-                className="w-full bg-black/70 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-amber-400/80 font-mono"
+                className="w-full bg-black/70 border border-white/[0.1] rounded-xl p-3 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[#D4AF37]/80 font-mono"
               />
             </div>
 
@@ -906,7 +906,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
               <button
                 onClick={handleSmsSubmit}
                 disabled={!rawSmsText.trim() || isParsingSms}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black text-xs font-bold font-mono disabled:opacity-40 flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-black text-xs font-bold font-serif disabled:opacity-40 flex items-center gap-1.5 cursor-pointer"
               >
                 {isParsingSms ? (
                   <>
@@ -927,8 +927,8 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
 
       {/* Manual Add Transaction Modal */}
       {isManualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-sm rounded-2xl horology-bezel p-5 shadow-2xl space-y-3.5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-2xl liquid-glass-card p-5 shadow-2xl space-y-3.5">
             <div className="flex items-center justify-between pb-2 border-b border-[#D4AF37]/20">
               <span className="font-serif text-sm font-bold text-[#FFF3C4] uppercase tracking-wider">
                 + New Transaction
@@ -959,7 +959,7 @@ export const EntriesTab: React.FC<EntriesTabProps> = ({
                 onClick={() => setManualType('credit')}
                 className={`py-2 rounded-lg text-xs font-bold font-mono transition cursor-pointer ${
                   manualType === 'credit'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-inner'
+                    ? 'bg-zinc-900 text-[#E5C378] border border-zinc-800'
                     : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >

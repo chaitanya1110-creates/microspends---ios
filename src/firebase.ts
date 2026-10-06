@@ -5,6 +5,8 @@ import {
   signInWithPopup, 
   signOut as firebaseSignOut, 
   onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   type User as FirebaseUser
 } from 'firebase/auth';
 import { 
@@ -105,6 +107,32 @@ export async function signInWithGoogle(): Promise<FirebaseUser> {
     return result.user;
   } catch (err: any) {
     console.error('Google Sign In error:', err);
+    throw err;
+  }
+}
+
+export async function signInWithEmail(email: string, password: string): Promise<FirebaseUser> {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    if (result.user) {
+      await syncUserDoc(result.user);
+    }
+    return result.user;
+  } catch (err: any) {
+    console.error('Email Sign In error:', err);
+    throw err;
+  }
+}
+
+export async function signUpWithEmail(email: string, password: string): Promise<FirebaseUser> {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    if (result.user) {
+      await syncUserDoc(result.user);
+    }
+    return result.user;
+  } catch (err: any) {
+    console.error('Email Sign Up error:', err);
     throw err;
   }
 }

@@ -62,35 +62,35 @@ export const OracleTab: React.FC<OracleTabProps> = ({
     ctx.lineCap = 'round';
     ctx.stroke();
 
-    // Active Golden Arc
+    // Active Golden/Platinum Arc
     const scoreFraction = Math.max(0, Math.min(100, insight.score)) / 100;
     const activeEndAngle = startAngle + totalAngle * scoreFraction;
 
     const grad = ctx.createLinearGradient(0, height, width, 0);
     grad.addColorStop(0, '#B8860B');
     grad.addColorStop(0.5, '#D4AF37');
-    grad.addColorStop(1, '#34D399');
+    grad.addColorStop(1, '#FFF3C4');
 
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, startAngle, activeEndAngle);
-    ctx.lineWidth = 12;
+    ctx.lineWidth = 10;
     ctx.strokeStyle = grad;
     ctx.lineCap = 'round';
     ctx.shadowColor = '#D4AF37';
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur = 10;
     ctx.stroke();
     ctx.shadowBlur = 0;
 
     // Score text in center
     ctx.fillStyle = '#FFF3C4';
-    ctx.font = 'bold 34px Cormorant Garamond, serif';
+    ctx.font = 'bold 28px Cormorant Garamond, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`${insight.score}`, centerX, centerY - 6);
 
     ctx.fillStyle = '#D4AF37';
-    ctx.font = 'bold 11px Cormorant Garamond, serif';
-    ctx.fillText(`GRADE ${insight.grade} · EQUILIBRIUM`, centerX, centerY + 18);
+    ctx.font = 'bold 10px Cormorant Garamond, serif';
+    ctx.fillText(`GRADE ${insight.grade} · EQUILIBRIUM`, centerX, centerY + 16);
   }, [insight.score, insight.grade]);
 
   // 2. Draw Spending Leakages Radar Pentagon on Engine-Turned Spiderweb
@@ -226,7 +226,7 @@ export const OracleTab: React.FC<OracleTabProps> = ({
       onUpdateInsight({
         score: data.score || 88,
         grade: data.grade || 'A',
-        headline: data.headline || 'Audit Patrimonial Terminé',
+        headline: data.headline || 'Wealth Audit Completed',
         summary: data.summary || '',
         leakageBreakdown: data.leakageBreakdown || insight.leakageBreakdown,
         recommendations: data.recommendations || [],
@@ -239,7 +239,7 @@ export const OracleTab: React.FC<OracleTabProps> = ({
       setQuery('');
     } catch (err: any) {
       console.error(err);
-      setError('Liaison avec le conseil interrompue. Veuillez réessayer.');
+      setError('Connection to advisor interrupted. Please try again.');
       if (soundEnabled) soundFx.deleteDrop();
     } finally {
       setIsLoading(false);
