@@ -30,8 +30,7 @@ MicroSpends Icarus is a high-fidelity, sleek personal finance application design
 *Spending Category Spheres and Daily Velocity Curve.*
 
 ### 3. Secure Cloud Vault
-![Cloud Vault](<img width="512" height="892" alt="image" src="https://github.com/user-attachments/assets/5a19296f-4e5b-473a-8353-d293a52597bc" />
-)
+"src/assets/images/Screenshot 2026-10-06 171817.png"
 *Google Firestore authentication and bi-directional synchronization.*
 
 ## 🛠️ Technology Stack
